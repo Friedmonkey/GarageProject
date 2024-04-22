@@ -1,0 +1,73 @@
+﻿@using MudBlazor.Utilities;
+@inherits LayoutComponentBase;
+@layout MainLayout;
+@inject NavigationManager navManager;
+
+<MudAppBar Style="@(loaded ? "":"background: #FFFFFF;")">
+    @if (!IsMedium)
+    {
+        <MudLink Href="/" Underline="Underline.None" Color="Color.Default" Style="width:14%; user-select:none;">
+            GarageProject
+        </MudLink>
+    }
+
+    <MediaQuery Media="@Breakpoints.MediumDown" @bind-Matches="IsMedium" />
+    <MudSpacer />
+
+    <AuthorizeView>
+        <Authorized>
+            @if (User != null)
+            {
+                <Avatar Clickable="false" Account="User"/>
+                <MudLink Color="Color.Default" Href=@($"/profile/{User.Id}") OnClick=@(() => navManager.NavigateTo($"/profile/{User.Id}",true)) Class="mx-4">@User.Username</MudLink>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <MudAvatar>?</MudAvatar>
+            <MudText Class="mx-4">Guest</MudText>
+        </NotAuthorized>
+    </AuthorizeView>
+
+    <DarkModeSwitch />
+
+    <MudDivider Class="mx-6 " DividerType="DividerType.Middle" Style="width: 2px; max-height: 40px;" Vertical="true" />
+    <AuthorizeView>
+        <Authorized>
+            <MudButton Style="width:7%;" OnClick="() => NavigationMenu.Logout(navManager)">LOGOUT</MudButton>
+        </Authorized>
+        <NotAuthorized>
+            <MudButton Style="width:7%;" OnClick="() => NavigationMenu.Login(navManager)">LOGIN</MudButton>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudAppBar>
+<SideMenu />
+<MudMainContent>
+    <div class="mt-5 ml-5">
+        @Body
+    </div>
+</MudMainContent>
+
+@code {
+    [CascadingParameter(Name = "loadedLAYOUT")]
+    public bool loaded { get; set; }
+    [CascadingParameter(Name = "DarkMode")]
+    public bool useDarkMode { get; set; }
+    [CascadingParameter(Name = "AuthSession")]
+    public bool loggedIn { get; set; }
+    [CascadingParameter(Name = "AuthUser")]
+    public UserAccount? User { get; set; }
+
+    private bool IsMedium { get; set; }
+
+    private List<BreadcrumbItem> _items = new List<BreadcrumbItem>
+    {
+        new BreadcrumbItem("Control", href: "/control", icon: Icons.Material.Filled.AdminPanelSettings),
+        new BreadcrumbItem("Edit", href: "/update", icon: Icons.Material.Filled.Update),
+        new BreadcrumbItem("Detail", href: "/detail", icon: Icons.Material.Filled.Info),
+        new BreadcrumbItem("View", href: "/view", icon: Icons.Material.Filled.Search),
+        new BreadcrumbItem("Fullscreen", href: "/fullscreen", icon: Icons.Material.Filled.SavedSearch),
+    };
+
+    private Guid tournamentGuid;
+
+}

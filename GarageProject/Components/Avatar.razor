@@ -1,0 +1,168 @@
+﻿@inject NavigationManager navManager;
+@inject ISnackbar snackbar;
+@inject RemoteService remoteService;
+@inject CommunicationService commService;
+@inject IDialogService dialogService;
+
+@using MudExtensions;
+@using MudExtensions.Enums;
+<div>
+    <MudMenu Disabled="!Clickable" ActivationEvent="MouseEvent.RightClick">
+        <ActivatorContent>
+            <div class="d-flex flex-row gap-2 align-center">
+
+                <MudBadge Overlap="true"
+                          Bordered="true"
+                          Content="badgeContent"
+                          Color="badgeColor"
+                          Visible="hasBadge">
+                    <MudAvatar Variant="Variant.Filled" Size="(small == null) ? Size.Large : ((bool)small ? Size.Small : Size.Medium)" Class="cursor-pointer" Color="@userColor">
+                        @if (Account == null || string.IsNullOrEmpty(Account.ProfilePicture))
+                        {
+                            @userLetter
+                        }
+                        else
+                        {
+                            <MudImage @onclick="async () => {if (!Clickable) {await ShowImage(Account.ProfilePicture);}}" Src="@Account.ProfilePicture" />
+                        }
+                    </MudAvatar>
+                </MudBadge>
+            </div>
+        </ActivatorContent>
+        <ChildContent>
+            @if (Account != null)
+            {
+                <MudMenuItem>
+                    <MudLink Color="Color.Default" Href=@($"/profile/{Account.Id}")>Go to profile</MudLink> 
+                </MudMenuItem>
+                @if (!string.IsNullOrWhiteSpace(Account.ProfilePicture))
+                {
+                    <MudMenuItem OnClick="() => ShowImage(Account.ProfilePicture)">
+                        <MudLink Color="Color.Default">View profile picture</MudLink> 
+                    </MudMenuItem>
+                }
+            }
+        </ChildContent>
+    </MudMenu>
+</div>
+
+@code {
+    [CascadingParameter(Name = "DarkMode")]
+    public bool DarkMode { get; set; }
+
+    [CascadingParameter(Name = "HideBadge")]
+    public bool HideBadge { get; set; } = false;
+
+    [Parameter]
+    public bool? small { get; set; } = false;
+
+    [Parameter]
+    public UserAccount? Account { get; set; }
+
+    [Parameter]
+    public bool Clickable { get; set; } = true;
+
+    public async Task ShowImage(string url)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("Source", url);
+        var dialog = dialogService.Show<PictureViewDialog>("Picture", parameters);
+
+        var result = await dialog.Result;
+    }
+
+    public Color userColor => UsernameToColor(Account?.Username);
+    public string userLetter => UserToLetter(Account);
+
+    public Color badgeColor = Color.Default; 
+    public string badgeContent = "null";
+    public bool hasBadge = false;
+
+    string UserToLetter(UserAccount? user)
+    {
+        if (user == null)
+            return "?";
+        string letter = user.Username.Substring(0, 1);
+        if (user.Role == UserAccount.User)
+        {
+            return letter.ToLower();
+        }
+        else
+        {
+            return letter.ToUpper();
+        }
+    }
+
+    /// <summary>
+    /// Get any of the mudblazor color's for this username
+    /// </summary>
+    /// <param name="username"></param>
+    /// <returns></returns>
+    Color UsernameToColor(string? username)
+    {
+        if (username == null)
+            return Color.Default; //gray
+
+        //get the weight of the username (should be somewhat random, but similair usernames shouldnt have the same)
+        int nameWheight = username.Sum(c => (int)c);
+
+        //restrict its range so it can only ever be 1,2,3,4,5,6 or 7 then cast that to a Color
+        nameWheight %= 7;
+        nameWheight += 1;
+
+        return (Color)nameWheight;
+    }
+    public static string UsernameToTheme(string? username)
+    {
+        if (username == null)
+            return "mud-default-gray".ToLower(); //gray
+
+        //get the weight of the username (should be somewhat random, but similair usernames shouldnt have the same)
+        int nameWheight = username.Sum(c => (int)c);
+
+        //restrict its range so it can only ever be 1,2,3,4,5,6 or 7 then cast that to a Color
+        nameWheight %= 7;
+        nameWheight += 1;
+
+        return "mud-theme-" + ((Color)nameWheight).ToString().ToLower();
+    }
+
+    protected override void OnInitialized()
+    {
+        if (HideBadge)
+        {
+            hasBadge = false;
+            return;
+        }
+
+        if (Account == null)
+            return;
+
+        switch (Account.Role)
+        {
+            case UserAccount.User:
+                hasBadge = false;
+                break;
+            case UserAccount.Admin:
+                hasBadge = true;
+                badgeColor = Color.Error;
+                badgeContent = "Admin";
+                break;
+            case UserAccount.Secretary:
+                hasBadge = true;
+                badgeColor = Color.Tertiary;
+                badgeContent = "HR";
+                break;
+            case UserAccount.Mechanic:
+                hasBadge = true;
+                badgeColor = Color.Warning;
+                badgeContent = "Mech";
+                break;
+            default:
+                hasBadge = true;
+                badgeColor = Color.Primary;
+                badgeContent = Account.Role;
+                break;
+        }
+    }
+}

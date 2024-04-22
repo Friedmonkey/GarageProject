@@ -1,0 +1,39 @@
+﻿@page "/";
+@inject NavigationManager navManager;
+@inject ISnackbar snackBar;
+@inject IUserRepository userRepository;
+
+
+
+<PageTitle>Home</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <MudText Typo="Typo.h3" GutterBottom="true">Hello, @context.User.Identity.Name!</MudText>
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo="Typo.h3" GutterBottom="true">Hello, Guest</MudText>
+    </NotAuthorized>
+</AuthorizeView>
+
+<MudButton OnClick="TestDatabase">Click for testing database</MudButton>
+
+<MudText Class="mb-8">Welcome to Bracket Builder, The tool for creating and sharing tournaments!</MudText>
+<MudText Class="mb-8">Would you like a quick guide?</MudText>
+<AuthorizeView Roles="@UserAccount.Admin">
+    <Authorized>
+        <MudButton Variant="Variant.Outlined" Color="Color.Info" Href="/support">Yes please give me a guide for admins</MudButton>
+    </Authorized>
+    <NotAuthorized>
+        <MudButton Variant="Variant.Outlined" Color="Color.Info" Href="/support">Yes please give me a guide</MudButton>
+    </NotAuthorized>
+</AuthorizeView>
+<br/>
+<MudButton Class="mt-3" Variant="Variant.Outlined" Color="Color.Tertiary" Href="/tournament">No just take me to the tournaments</MudButton>
+
+@code{
+    public async Task TestDatabase()
+    {
+        var users = await userRepository.GetUsersByFilter();
+    }
+}
