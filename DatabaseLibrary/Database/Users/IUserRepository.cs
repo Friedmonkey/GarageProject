@@ -1,6 +1,6 @@
 ﻿using DatabaseLibrary.Models;
 
-namespace GarageProject.Services.Interfaces
+namespace DatabaseLibrary.Database.Users
 {
     //Following the Crud syntax
     //Create

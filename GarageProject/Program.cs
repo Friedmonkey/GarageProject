@@ -13,6 +13,10 @@ using DatabaseLibrary.Models;
 using System.Reflection;
 using DatabaseLibrary.Database;
 using DatabaseLibrary.Database.Apointments;
+using DatabaseLibrary.Database.Invoices;
+using DatabaseLibrary.Database.Users;
+using DatabaseLibrary.Database.Materials;
+using DatabaseLibrary.Database.Reviews;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +65,9 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<DatabaseContext>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IReviewRepository, ReviewRepository>();
+builder.Services.AddSingleton<IMaterialRepository, MaterialRepository>();
+builder.Services.AddSingleton<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddSingleton<IApointmentRepository, ApointmentRepository>();
 
 

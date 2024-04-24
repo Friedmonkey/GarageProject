@@ -1,10 +1,9 @@
 ﻿using DatabaseLibrary.Database;
 using DatabaseLibrary.Models;
-using GarageProject.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
-namespace GarageProject.Services;
+namespace DatabaseLibrary.Database.Users;
 
 //Following the Crud syntax
 //Create
