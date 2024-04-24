@@ -24,6 +24,8 @@ namespace DatabaseLibrary.Models
         public string Username { get; set; }
         public string FullName { get; set; }
         public string HashedPassword { get; set; }
+        public string Addess { get; set; } = "Grove st.";
+        public string PhoneNumber { get; set; } = "123456789";
         public string Role { get; set; } = UserAccount.User;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string Bio { get; set; } = "Hello";

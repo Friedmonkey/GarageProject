@@ -85,6 +85,8 @@ public class UserRepository : IUserRepository
         string? fullName = null, 
         string? role = null, 
         string? email = null, 
+        string? address = null, 
+        string? phone = null, 
         bool? banned = null, 
 
         string? password = null, 
@@ -110,6 +112,11 @@ public class UserRepository : IUserRepository
                 result.Email = email;
             if (banned != null)
                 result.Banned = (bool)banned;
+
+            if (address != null)
+                result.Addess = address;
+            if (phone != null)
+                result.PhoneNumber = phone;
 
             if (password != null)
                 result.Password = password;
