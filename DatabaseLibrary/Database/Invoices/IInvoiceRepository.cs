@@ -1,4 +1,5 @@
-﻿using DatabaseLibrary.Models;
+﻿using DatabaseLibrary.Database.Invoices;
+using DatabaseLibrary.Models;
 
 namespace GarageProject.Services.Interfaces
 {
@@ -10,6 +11,7 @@ namespace GarageProject.Services.Interfaces
     public interface IInvoiceRepository
     {
         Task<string> CreateInvoice(Invoice invoice);
+        Task CreateInvoiceMaterialCouple(int invoiceId, int materialId);
         Task<List<Invoice>> GetInvoicesByFilter(
             int? id = null,
             int? customerId = null
@@ -18,6 +20,8 @@ namespace GarageProject.Services.Interfaces
             int? id = null,
             int? customerId = null
         );
+        Task<List<Material>> GetMaterialsByInvoiceId(int invoiceID);
+        Task<InvoiceMaterialCouple?> GetInvoiceMaterialCouple(int invoiceId, int materialId);
 
         Task UpdateInvoice(int id,
             int? customerID = null,
@@ -27,5 +31,6 @@ namespace GarageProject.Services.Interfaces
             string? brand = null
         );
         Task DeleteInvoice(int id);
+        Task DeleteInvoiceMaterialCouple(int invoiceId, int materialId);
     }
 }

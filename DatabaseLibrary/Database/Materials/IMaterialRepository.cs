@@ -12,14 +12,17 @@ public interface IMaterialRepository
     Task<string> CreateMaterial(Material material);
     Task<List<Material>> GetMaterialsByFilter(
         int? id = null,
-        int? customerId = null
+        string? name = null,
+        float? singleCost = null,
+        int? amount = null
+    );
+    Task<List<Material>> GetMaterialsBySearchFilter(
+        string? name = null
     );
     Task UpdateMaterial(int id,
-        int? customerID = null,
-        DateTime? date = null,
-        float? serviceCost = null,
-        float? apointmentCost = null,
-        string? brand = null
+        string? name = null,
+        float? singleCost = null,
+        int? amount = null
     );
     Task DeleteMaterial(int id);
 }

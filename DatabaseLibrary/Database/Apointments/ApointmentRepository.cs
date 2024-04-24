@@ -1,4 +1,5 @@
-﻿using DatabaseLibrary.Models;
+﻿using Bogus.DataSets;
+using DatabaseLibrary.Models;
 using GarageProject.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Crypto;
@@ -20,6 +21,7 @@ namespace DatabaseLibrary.Database.Apointments
             this._invoiceRepository = invoiceRepository;
         }
 
+        #region Helpers
         private async Task<Apointment?> Resolve(ApointmentDTO entity) 
         {
             UserAccount? apointmentCreator = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.ApointmentCreatorID);
@@ -56,11 +58,11 @@ namespace DatabaseLibrary.Database.Apointments
                 Status = entity.Status
             };
         }
+        #endregion
 
         #region Create 
         public async Task<string> CreateAppointment(Apointment apointment)
         {
-
             if (await _database.Apointments.FirstOrDefaultAsync(a => a.Date == apointment.Date) == null)
             {
                 _database.Apointments.Add(await Convert(apointment));
@@ -94,13 +96,35 @@ namespace DatabaseLibrary.Database.Apointments
         #region Update 
         public async Task UpdateAppointment(int id, int? creatorId = null, DateTime? date = null, Status? status = null, string? description = null, int? invoiceId = null, int? mechanicId = null, string? secreteryNote = null)
         {
-            throw new NotImplementedException();
+            var result = (await _database.Apointments.FirstOrDefaultAsync(a => a.ID == id));
+            if (result != null)
+            {
+                if (creatorId != null)
+                    result.ApointmentCreatorID = (int)creatorId;
+                if (date != null)
+                    result.Date = (DateTime)date;
+                if (status != null)
+                    result.Status = (Status)status;
+                if (description != null)
+                    result.Description = description;
+                if (invoiceId != null)
+                    result.InvoiceID = (int)invoiceId;
+
+                if (mechanicId != null)
+                    result.MechanicAssignedID = (int)mechanicId;
+                if (secreteryNote != null)
+                    result.SecreteryNote = secreteryNote;
+
+                _database.SaveChanges();
+            }
         }
         #endregion
         #region Delete 
         public async Task DeleteAppointment(int id)
         {
-            throw new NotImplementedException();
+            var result = (await _database.Apointments.FirstOrDefaultAsync(a => a.ID == id));
+            _database.Apointments.Remove(result);
+            _database.SaveChanges();
         }
         #endregion
     }
