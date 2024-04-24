@@ -1,7 +1,10 @@
 ﻿@page "/";
+@using DatabaseLibrary.Database.Reviews;
+
 @inject NavigationManager navManager;
 @inject ISnackbar snackBar;
 @inject IUserRepository userRepository;
+@inject IReviewRepository reviewRepository;
 
 
 
@@ -16,24 +19,32 @@
     </NotAuthorized>
 </AuthorizeView>
 
-<MudButton OnClick="TestDatabase">Click for testing database</MudButton>
-
-<MudText Class="mb-8">Welcome to Bracket Builder, The tool for creating and sharing tournaments!</MudText>
-<MudText Class="mb-8">Would you like a quick guide?</MudText>
-<AuthorizeView Roles="@UserAccount.Admin">
+<MudText Class="mb-8">Welcome to <b>The Garage</b>, <b>The Garage</b> is the garage for reparing your vehicles!</MudText>
+<AuthorizeView>
     <Authorized>
-        <MudButton Variant="Variant.Outlined" Color="Color.Info" Href="/support">Yes please give me a guide for admins</MudButton>
+        <MudText>Let other customers know what you think of us!</MudText>
+        <MudText>We would gladly aprachiate if you left a review!</MudText>
+        <ReviewCard Writing="true"/>
     </Authorized>
-    <NotAuthorized>
-        <MudButton Variant="Variant.Outlined" Color="Color.Info" Href="/support">Yes please give me a guide</MudButton>
-    </NotAuthorized>
 </AuthorizeView>
-<br/>
-<MudButton Class="mt-3" Variant="Variant.Outlined" Color="Color.Tertiary" Href="/tournament">No just take me to the tournaments</MudButton>
+@if (Reviews.Count() > 0)
+{
+    <MudText Class="mb-8">See what other customers think:</MudText>
+    <br/>
+    <MudExpansionPanel Text="Reviews">
+        @foreach (var review in Reviews)
+        {
+            <ReviewCard Review="review" />
+        }
+    </MudExpansionPanel>
+}
 
 @code{
-    public async Task TestDatabase()
+    public List<Review> Reviews = new List<Review>();
+
+    protected override async Task OnInitializedAsync()
     {
-        var users = await userRepository.GetUsersByFilter();
+        List<Review> reviews = await reviewRepository.GetReviewsByFilter();
+        Reviews = reviews.OrderBy(r => r.DatePosted).OrderBy(r => r.ReviewStars).ToList();
     }
 }

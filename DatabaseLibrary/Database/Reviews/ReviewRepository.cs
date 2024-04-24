@@ -58,19 +58,19 @@ public class ReviewRepository : IReviewRepository
             _database.SaveChanges();
             return "success";
         }
-        else return "You have already left and review!";
+        else return "You have already left an review!";
     }
     #endregion
     #region Read 
-    public async Task<List<Review>> GetReviewsByFilter(int? id = null, int? reviewerId = null, float? minReviewStars = null, float? maxReviewStars = null, string? reviewTextContains = null, DateTime? reviewPostedAfter = null, DateTime? reviewPostedBefore = null)
+    public async Task<List<Review>> GetReviewsByFilter(int? id = null, int? reviewerId = null, int? minReviewStars = null, int? maxReviewStars = null, string? reviewTextContains = null, DateTime? reviewPostedAfter = null, DateTime? reviewPostedBefore = null)
     {
         List<Review> reviews = new List<Review>();
 
         var querry = (await _database.Reviews.Where(a =>
             (id == null || a.ID == id) &&
             (reviewerId == null || a.ReviewerID == reviewerId) &&
-            (minReviewStars == null || a.ReviewStars >= (float)minReviewStars) &&
-            (maxReviewStars == null || a.ReviewStars <= (float)maxReviewStars) &&
+            (minReviewStars == null || a.ReviewStars >= (int)minReviewStars) &&
+            (maxReviewStars == null || a.ReviewStars <= (int)maxReviewStars) &&
 
             (reviewPostedAfter == null || a.DatePosted >= (DateTime)reviewPostedAfter) &&
             (reviewPostedBefore == null || a.DatePosted <= (DateTime)reviewPostedBefore) &&

@@ -12,5 +12,5 @@ public class Review
     public UserAccount Reviewer { get; set; }
     public DateTime DatePosted { get; set; }
     public string ReviewText { get; set; }
-    public float ReviewStars { get; set; }
+    public int ReviewStars { get; set; }
 }

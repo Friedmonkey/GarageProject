@@ -1,0 +1,92 @@
+﻿@using DatabaseLibrary.Database.Reviews;
+@inject NavigationManager navManager;
+@inject IReviewRepository reviewRepository;
+@inject ISnackbar snackBar;
+
+<MudPaper Elevation="2" Class="pa-2">
+    @if (Review == null)
+    {
+        <MudText Color="Color.Error">Failed to retrive review.</MudText>
+    }
+    else
+    {
+        @if (Review.Reviewer == null)
+        {
+            if (Writing && User != null)
+            {
+                Review.Reviewer = User;
+            }
+        }
+        else
+        {
+            <div class="d-flex flex-row gap-2 cursor-pointer" @onclick=@(() => navManager.NavigateTo($"/profile/{Review.Reviewer.ID}"))>
+                <Avatar Clickable="false" Account="Review.Reviewer"></Avatar>
+                <div class="ml-8">
+                    <MudText Typo="Typo.subtitle1">@Review.Reviewer.FullName</MudText>
+                    <MudText Typo="Typo.caption">@@@Review.Reviewer.Username</MudText>
+                </div>
+            </div>
+        }
+        <div>
+            <MudRating Disabled="!Writing"  @bind-SelectedValue="Review.ReviewStars"/>
+            @if (!Writing)
+            {
+                @foreach (var line in Review.ReviewText.Split('\n'))
+                {
+                    <MudText>@line</MudText>  
+                }
+            }
+            else
+            {
+                <MudTextField AutoGrow="true" Lines="3" @bind-Value="Review.ReviewText" Label="Review"/>
+                <div>
+                    <MudButton OnClick="PostReview" >Post review</MudButton>
+                </div>    
+            }
+        </div>
+    }
+</MudPaper>
+
+@code {
+    [Parameter]
+    public Review Review { get; set; }
+
+    [Parameter]
+    public bool Writing { get; set; } = false;
+
+    [CascadingParameter(Name = "AuthUser")]
+    public UserAccount User { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Writing)
+        {
+            Review = new Review()
+            {
+                ReviewStars = 4,
+                ReviewText = string.Empty,
+                DatePosted = DateTime.Now,
+            };
+        }
+    }
+
+    public async Task PostReview()
+    {
+        if (User == null)
+        {
+            snackBar.Add("you need to be logged in in order to write a review", Severity.Error);
+            return;
+        }
+        Review.DatePosted = DateTime.Now; //update the datetime accurately
+        Review.Reviewer = User; //update the datetime accurately
+        var result = await reviewRepository.CreateReview(Review);
+        if (result == "success")
+        {
+            snackBar.Add("Review posted!", Severity.Success);
+        }
+        else
+        {
+            snackBar.Add(result, Severity.Error);
+        }
+    }
+}

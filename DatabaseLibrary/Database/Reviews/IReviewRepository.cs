@@ -14,8 +14,8 @@ public interface IReviewRepository
         int? id = null,
         int? reviewerId = null,
 
-        float? minReviewStars = null,
-        float? maxReviewStars = null,
+        int? minReviewStars = null,
+        int? maxReviewStars = null,
 
         string? reviewTextContains = null,
 
