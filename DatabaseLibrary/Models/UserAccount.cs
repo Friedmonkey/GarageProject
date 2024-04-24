@@ -10,7 +10,7 @@ namespace DatabaseLibrary.Models
         public UserAccount() { }
         public UserAccount(int id,string name, bool verified, string? password = null) 
         {
-            Id = id;
+            ID = id;
             FullName = name;
             Username = name;
             Email = $"{name}@example.com";
@@ -20,7 +20,7 @@ namespace DatabaseLibrary.Models
             else
                 Password = password;
         }
-        public int Id { get; set; }
+        public int ID { get; set; }
         public string Username { get; set; }
         public string FullName { get; set; }
         public string HashedPassword { get; set; }

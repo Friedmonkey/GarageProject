@@ -11,7 +11,7 @@
         <MudCardHeader Class="d-flex flex-row gap-10">
             <div class="gap-10">
                 <Avatar Clickable="false" Account="Profile" />
-                <div class="d-flex flex-column cursor-pointer" @onclick=@(() => navManager.NavigateTo($"/profile/{Profile.Id}"))>
+                <div class="d-flex flex-column cursor-pointer" @onclick=@(() => navManager.NavigateTo($"/profile/{Profile.ID}"))>
                     <div class="d-flex flex-row align-center gap-2">
                         <MudText Typo="Typo.h5"><b>@Profile.FullName</b></MudText>
                         @if (Profile.Verified)
@@ -26,7 +26,7 @@
                 <AuthorizeView Roles="@UserAccount.Admin">
                     <Authorized>
                         <MudTooltip Text="Edit profile settings">
-                            <MudIconButton Size="Size.Medium" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => navManager.NavigateTo($"/settings/{Profile.Id}"))" />
+                            <MudIconButton Size="Size.Medium" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => navManager.NavigateTo($"/settings/{Profile.ID}"))" />
                         </MudTooltip>
                     </Authorized>
                 </AuthorizeView>
@@ -108,7 +108,7 @@ else
         await Task.Delay(100);
         if (loggedIn && User != null && !loaded)
         {
-            Profile = (await userRepository.GetUsersByFilter(id: User.Id)).FirstOrDefault();
+            Profile = (await userRepository.GetUsersByFilter(id: User.ID)).FirstOrDefault();
             loaded = true;
             StateHasChanged();
         }

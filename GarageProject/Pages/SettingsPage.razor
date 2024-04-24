@@ -14,7 +14,7 @@
                     <MudText Typo="Typo.h6">
                         Settings for 
                         <MudTooltip Text="Go to profile">
-                            <MudLink Typo="Typo.h6" Href="@($"/profile/{Profile.Id}")">@Profile.FullName</MudLink>
+                            <MudLink Typo="Typo.h6" Href="@($"/profile/{Profile.ID}")">@Profile.FullName</MudLink>
                         </MudTooltip>
                     </MudText>
                 </MudCardHeader>
@@ -197,7 +197,7 @@
         else
         {
             //otherwise just update it
-            userRepository.UpdateUserByProperty(Profile.Id, Setting.settingName, Setting.settingValue);
+            userRepository.UpdateUserByProperty(Profile.ID, Setting.settingName, Setting.settingValue);
         }
 
         if (AccountId == null) 
@@ -212,9 +212,9 @@
         Guid verifyRequest = Guid.NewGuid();
         //set verify request to now
         //update the guid to something random
-        await userRepository.UpdateUser(account.Id, email:newEmail, verified:false, verifyRequest: DateTime.Now, verifiedGuid: verifyRequest);
+        await userRepository.UpdateUser(account.ID, email:newEmail, verified:false, verifyRequest: DateTime.Now, verifiedGuid: verifyRequest);
 
-        string url = $"{navManager.BaseUri}verify/{account.Id}/{verifyRequest}";
+        string url = $"{navManager.BaseUri}verify/{account.ID}/{verifyRequest}";
 
         string emailContent = $@"
         <div style='font-family: Arial, sans-serif;'>
@@ -239,10 +239,10 @@
         Guid resetRequest = Guid.NewGuid();
         //set verify request to now
         //update the guid to something random
-        await userRepository.UpdateUser(account.Id, passwordResetRequest: DateTime.Now, passwordResetGuid: resetRequest);
+        await userRepository.UpdateUser(account.ID, passwordResetRequest: DateTime.Now, passwordResetGuid: resetRequest);
 
         // Construct the URL for verification
-        string url = $"{navManager.BaseUri}reset/{account.Id}/{resetRequest}";
+        string url = $"{navManager.BaseUri}reset/{account.ID}/{resetRequest}";
 
         // Construct the email content with the username
         string emailContent = $@"

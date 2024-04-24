@@ -12,6 +12,7 @@ using BlazorPro.BlazorSize;
 using DatabaseLibrary.Models;
 using System.Reflection;
 using DatabaseLibrary.Database;
+using DatabaseLibrary.Database.Apointments;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,7 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<DatabaseContext>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IApointmentRepository, ApointmentRepository>();
 
 
 builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();

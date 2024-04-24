@@ -33,7 +33,7 @@
             @if (Account != null)
             {
                 <MudMenuItem>
-                    <MudLink Color="Color.Default" Href=@($"/profile/{Account.Id}")>Go to profile</MudLink> 
+                    <MudLink Color="Color.Default" Href=@($"/profile/{Account.ID}")>Go to profile</MudLink> 
                 </MudMenuItem>
                 @if (!string.IsNullOrWhiteSpace(Account.ProfilePicture))
                 {

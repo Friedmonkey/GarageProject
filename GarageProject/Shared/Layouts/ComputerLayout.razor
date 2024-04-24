@@ -19,7 +19,7 @@
             @if (User != null)
             {
                 <Avatar Clickable="false" Account="User"/>
-                <MudLink Color="Color.Default" Href=@($"/profile/{User.Id}") OnClick=@(() => navManager.NavigateTo($"/profile/{User.Id}",true)) Class="mx-4">@User.Username</MudLink>
+                <MudLink Color="Color.Default" Href=@($"/profile/{User.ID}") OnClick=@(() => navManager.NavigateTo($"/profile/{User.ID}",true)) Class="mx-4">@User.Username</MudLink>
             }
         </Authorized>
         <NotAuthorized>

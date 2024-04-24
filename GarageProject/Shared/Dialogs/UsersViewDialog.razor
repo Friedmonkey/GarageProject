@@ -51,7 +51,7 @@
         int count = 0;
         foreach (var user in Table?.selectedAccounts)
         {
-            await databaseUserService.DeleteUser(user.Id);
+            await databaseUserService.DeleteUser(user.ID);
             count++;
         }
         if (count == 0)

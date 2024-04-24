@@ -120,10 +120,10 @@ else
         Guid resetRequest = Guid.NewGuid();
         //set verify request to now
         //update the guid to something random
-        await userAccountService.UpdateUser(account.Id, passwordResetRequest: DateTime.Now, passwordResetGuid: resetRequest);
+        await userAccountService.UpdateUser(account.ID, passwordResetRequest: DateTime.Now, passwordResetGuid: resetRequest);
 
         // Construct the URL for verification
-        string url = $"{navManager.BaseUri}reset/{account.Id}/{resetRequest}";
+        string url = $"{navManager.BaseUri}reset/{account.ID}/{resetRequest}";
 
         // Construct the email content with the username
         string emailContent = $@"
@@ -192,9 +192,9 @@ else
         Guid verifyRequest = Guid.NewGuid();
         //set verify request to now
         //update the guid to something random
-        await userAccountService.UpdateUser(account.Id, verifyRequest: DateTime.Now, verifiedGuid: verifyRequest);
+        await userAccountService.UpdateUser(account.ID, verifyRequest: DateTime.Now, verifiedGuid: verifyRequest);
 
-        string url = $"{navManager.BaseUri}verify/{account.Id}/{verifyRequest}";
+        string url = $"{navManager.BaseUri}verify/{account.ID}/{verifyRequest}";
 
         string emailContent = $@"
         <div style='font-family: Arial, sans-serif;'>
@@ -239,7 +239,7 @@ else
                 else // still time left to verify
                 {
                     snackBar.Add($"An request has already been sent to you!, an email with a link has been sent to you, check your inbox or your spam. Or try reloading the page. ({userAccount.Email})", Severity.Success);
-                    await userAccountService.UpdateUser(userAccount.Id, verifyRequest: DateTime.Now); //extend the request
+                    await userAccountService.UpdateUser(userAccount.ID, verifyRequest: DateTime.Now); //extend the request
                 }
             }
             return;

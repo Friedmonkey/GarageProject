@@ -21,6 +21,8 @@ public class DatabaseContext : DbContext
     //}
 
     public DbSet<UserAccount> Users { get; set; }
+    public DbSet<ApointmentDTO> Apointments { get; set; }
+    public DbSet<ApointmentDTO> Apointments { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

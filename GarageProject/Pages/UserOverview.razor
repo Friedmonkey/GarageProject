@@ -32,7 +32,7 @@
                 if (user.Role == UserAccount.Mechanic) TextColor = Color.Warning;
             }
             <Avatar small="null" Account="user" Clickable="true" />
-                    <div class="d-flex flex-column cursor-pointer" @onclick=@(() => navManager.NavigateTo($"/profile/{user.Id}"))>
+                    <div class="d-flex flex-column cursor-pointer" @onclick=@(() => navManager.NavigateTo($"/profile/{user.ID}"))>
                 <div class="d-flex flex-row align-center gap-2">
                     <MudText Color="TextColor" Typo="Typo.h5"><b><MudHighlighter Class="HighlightStyle" HighlightedText="@NameFilter" Text="@user.FullName" /></b></MudText>
                     @if (user.Verified)

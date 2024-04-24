@@ -48,7 +48,7 @@ public class UserRepository : IUserRepository
         )
     {
         return (await _database.Users.Where(a =>
-            (id == null || a.Id == id) &&
+            (id == null || a.ID == id) &&
             (username == null || a.Username.ToLower() == username.ToLower()) &&
             (fullName == null || a.FullName.Contains(fullName)) &&
             (role == null || a.Role == role) &&
@@ -99,7 +99,7 @@ public class UserRepository : IUserRepository
         )
     {
 
-        var result = (await _database.Users.FirstOrDefaultAsync(a => a.Id == id));
+        var result = (await _database.Users.FirstOrDefaultAsync(a => a.ID == id));
         if (result != null)
         {
             if (username != null)
@@ -138,7 +138,7 @@ public class UserRepository : IUserRepository
     }
     public async Task UpdateUserByProperty(int id, string property, string value)
     {
-        var result = await _database.Users.FirstOrDefaultAsync(a => a.Id == id);
+        var result = await _database.Users.FirstOrDefaultAsync(a => a.ID == id);
         if (result != null)
         {
             var propertyInfo = result.GetType().GetProperty(property, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
@@ -161,7 +161,7 @@ public class UserRepository : IUserRepository
     #region Delete
     public async Task DeleteUser(int id)
     {
-        var result = (await _database.Users.FirstOrDefaultAsync(a => a.Id == id));
+        var result = (await _database.Users.FirstOrDefaultAsync(a => a.ID == id));
         _database.Users.Remove(result);
         _database.SaveChanges();
     }
