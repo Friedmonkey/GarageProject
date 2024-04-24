@@ -1,4 +1,6 @@
-﻿using DatabaseLibrary.Models;
+﻿using DatabaseLibrary.Database.Invoices;
+using DatabaseLibrary.Database.Reviews;
+using DatabaseLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -21,8 +23,14 @@ public class DatabaseContext : DbContext
     //}
 
     public DbSet<UserAccount> Users { get; set; }
+
     public DbSet<ApointmentDTO> Apointments { get; set; }
-    public DbSet<ApointmentDTO> Apointments { get; set; }
+
+    public DbSet<InvoiceDTO> Invoices { get; set; }
+    public DbSet<InvoiceMaterialCouple> InvoiceMaterialCouples { get; set; }
+
+    public DbSet<Material> Materials { get; set; }
+    public DbSet<ReviewDTO> Reviews { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

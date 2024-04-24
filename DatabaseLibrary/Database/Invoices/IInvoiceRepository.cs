@@ -14,6 +14,11 @@ namespace GarageProject.Services.Interfaces
             int? id = null,
             int? customerId = null
         );
+        Task<Invoice> GetInvoiceByFilter(
+            int? id = null,
+            int? customerId = null
+        );
+
         Task UpdateInvoice(int id,
             int? customerID = null,
             DateTime? date = null,
