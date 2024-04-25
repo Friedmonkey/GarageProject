@@ -2,6 +2,7 @@
 @inject NavigationManager navManager;
 @inject IReviewRepository reviewRepository;
 @inject ISnackbar snackBar;
+@inject RemoteService remoteService;
 
 <MudPaper Elevation="2" Class="pa-2">
     @if (Review == null)
@@ -28,9 +29,9 @@
             </div>
         }
         <div>
-            <MudRating Disabled="!Writing"  @bind-SelectedValue="Review.ReviewStars"/>
             @if (!Writing)
             {
+                <MudRating ReadOnly="true" SelectedValue="Review.ReviewStars"/>
                 @foreach (var line in Review.ReviewText.Split('\n'))
                 {
                     <MudText>@line</MudText>  
@@ -38,6 +39,10 @@
             }
             else
             {
+                <div class="d-flex flex-column">
+                    <MudRating @bind-SelectedValue="Review.ReviewStars" HoveredValueChanged="HandleHoveredValueChanged" />
+                    <MudText Typo="Typo.subtitle2" Class="deep-purple-text mt-2">@LabelText</MudText>
+                </div>
                 <MudTextField AutoGrow="true" Lines="3" @bind-Value="Review.ReviewText" Label="Review"/>
                 <div>
                     <MudButton OnClick="PostReview" >Post review</MudButton>
@@ -57,13 +62,26 @@
     [CascadingParameter(Name = "AuthUser")]
     public UserAccount User { get; set; }
 
+    private int? activeVal;
+
+    private void HandleHoveredValueChanged(int? val) => activeVal = val;
+
+    private string LabelText => (activeVal ?? Review.ReviewStars) switch
+    {
+        1 => "Very bad",
+        2 => "Bad",
+        3 => "Sufficient",
+        4 => "Good",
+        5 => "Awesome!",
+        _ => "Rate our product!"
+    };
+
     protected override async Task OnInitializedAsync()
     {
         if (Writing)
         {
             Review = new Review()
             {
-                ReviewStars = 4,
                 ReviewText = string.Empty,
                 DatePosted = DateTime.Now,
             };
@@ -72,6 +90,17 @@
 
     public async Task PostReview()
     {
+        if (Review.ReviewStars is 1 or 2 or 3 or 4 or 5) { } else
+        {
+            snackBar.Add("Please select a rating in order to post this review", Severity.Warning);
+            return;
+        }
+        var content = Review.ReviewText.Trim();
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            snackBar.Add("Please enter the body for your review", Severity.Warning);
+            return;
+        }
         if (User == null)
         {
             snackBar.Add("you need to be logged in in order to write a review", Severity.Error);
@@ -83,6 +112,7 @@
         if (result == "success")
         {
             snackBar.Add("Review posted!", Severity.Success);
+            remoteService.CallRequestRefresh();
         }
         else
         {

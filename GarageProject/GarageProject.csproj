@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="BlazorPro.BlazorSize" Version="6.2.2" />
     <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.9.2" />
+    <PackageReference Include="Heron.MudCalendar" Version="1.1.1" />
     <PackageReference Include="MudBlazor" Version="6.19.1" />
   </ItemGroup>
 

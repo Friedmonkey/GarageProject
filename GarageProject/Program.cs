@@ -63,12 +63,12 @@ builder.Services.AddHttpClient();
 //i changed this from singleton to scoped (i hope it wont crash in the future because of conflicts or whatever)
 
 
-builder.Services.AddSingleton<DatabaseContext>();
-builder.Services.AddSingleton<IUserRepository, UserRepository>();
-builder.Services.AddSingleton<IReviewRepository, ReviewRepository>();
-builder.Services.AddSingleton<IMaterialRepository, MaterialRepository>();
-builder.Services.AddSingleton<IInvoiceRepository, InvoiceRepository>();
-builder.Services.AddSingleton<IApointmentRepository, ApointmentRepository>();
+builder.Services.AddScoped<DatabaseContext>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IApointmentRepository, ApointmentRepository>();
 
 
 builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();

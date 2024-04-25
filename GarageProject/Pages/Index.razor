@@ -5,6 +5,7 @@
 @inject ISnackbar snackBar;
 @inject IUserRepository userRepository;
 @inject IReviewRepository reviewRepository;
+@inject RemoteService remoteService;
 
 
 
@@ -23,8 +24,15 @@
 <AuthorizeView>
     <Authorized>
         <MudText>Let other customers know what you think of us!</MudText>
-        <MudText>We would gladly aprachiate if you left a review!</MudText>
-        <ReviewCard Writing="true"/>
+        @if (AlreadyReviewed)
+        {
+            <MudText>Thank you for leaving behind a review!</MudText>
+        }
+        else
+        {
+            <MudText>We would gladly aprachiate if you left a review!</MudText>
+            <ReviewCard Writing="true"/>
+        }
     </Authorized>
 </AuthorizeView>
 @if (Reviews.Count() > 0)
@@ -40,11 +48,49 @@
 }
 
 @code{
+    [CascadingParameter(Name = "AuthUser")]
+    public UserAccount User { get; set; }
+
+    private bool AlreadyReviewed;
+
     public List<Review> Reviews = new List<Review>();
 
     protected override async Task OnInitializedAsync()
     {
+        remoteService.RefreshRequested += reload;
+        await LoadReviews();
+    }
+
+    private async Task LoadReviews()
+    {
         List<Review> reviews = await reviewRepository.GetReviewsByFilter();
         Reviews = reviews.OrderBy(r => r.DatePosted).OrderBy(r => r.ReviewStars).ToList();
+
+        int userId = (User == null) ? -1 : User.ID;
+        var userReview = Reviews.FirstOrDefault(r => r.Reviewer.ID == userId);
+
+        if (userReview != null)
+        {
+            AlreadyReviewed = true;
+            Reviews.Remove(userReview);
+            Reviews.Add(userReview);
+        }
+
+        Reviews.Reverse();
+    }
+
+    public void Dispose()
+    {
+        remoteService.RefreshRequested -= reload;
+    }
+
+    private async void reload()
+    {
+        try
+        {
+            await LoadReviews();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch { }
     }
 }

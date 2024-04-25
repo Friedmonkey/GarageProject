@@ -9,8 +9,11 @@
             <MudNavLink Href="import" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.ImportContacts"><p class="menu-wrapper">Import</p></MudNavLink>
             <MudNavLink Href="create" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.AddCircle"><p class="menu-wrapper">Create Tournament</p></MudNavLink>
         }
+        @if (User.Role is UserAccount.Admin or UserAccount.Mechanic)
+        {
+            <MudNavLink Href="apointments" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.DateRange"><p class="menu-wrapper">Apointments</p></MudNavLink>
+        }
     }
-    <MudNavLink Href="tournament" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.Tour"><p class="menu-wrapper">Tournament</p></MudNavLink>
     <MudNavLink Href="users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.Group"><p class="menu-wrapper">Users</p></MudNavLink>
     <MudNavLink Class="d-flex align-self-end" Href="support" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.QuestionMark" IconColor="Color.Info"><p class="menu-wrapper">Support</p></MudNavLink>
 </MudNavMenu>

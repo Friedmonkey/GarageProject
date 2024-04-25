@@ -1,175 +1,195 @@
 ﻿@page "/settings"
-@page "/settings/{AccountIdStr}"
+@page "/settings/{ID}"
 
 @inject NavigationManager navManager
 @inject IUserRepository userRepository
 @inject ISnackbar snackBar;
 
-<AuthorizeView Context="authContext">
-    <Authorized>
-        @if (isLoggedIn && Profile != null)
-        {
-            <MudCard>
-                <MudCardHeader>
-                    <MudText Typo="Typo.h6">
-                        Settings for 
-                        <MudTooltip Text="Go to profile">
-                            <MudLink Typo="Typo.h6" Href="@($"/profile/{Profile.ID}")">@Profile.FullName</MudLink>
-                        </MudTooltip>
-                    </MudText>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudTable Breakpoint="Breakpoint.None" Items="@Settings" Dense="true" CanCancelEdit="true" Filter="new Func<Setting,bool>(FilterFunc)"
-                    @bind-SelectedItem="selectedItem1" SortLabel="Sort By" CommitEditTooltip="Apply"
-                              RowEditPreview="BackupItem" RowEditCancel="ResetItemToOriginalValues"
-                              RowEditCommit="ItemHasBeenCommitted" EditTrigger="TableEditTrigger.EditButton">
-                        <ToolBarContent>
-                            <MudText Typo="Typo.h6">Account Settings</MudText>
-                            <MudSpacer />
-                            <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-                        </ToolBarContent>
-                        <ColGroup>
-                            <col style="width:30%;" />
-                            <col style="width:60%;" />
-                            <col style="width:50px;" />
-                        </ColGroup>
-                        <HeaderContent>
-                            <MudTh><MudTableSortLabel SortBy="new Func<Setting, object>(x=>x.settingName)">Name</MudTableSortLabel></MudTh>
-                            <MudTh>Value</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd DataLabel="settingName">@context.settingName</MudTd>
-                            @if (context.settingName.ToLower() == "password")
-                            {
-                                <MudTd>*****</MudTd>
-                            }
-                            else
-                            {
-                                <MudTd>@context.settingValue</MudTd>
-                            }
-                        </RowTemplate>
-                        <RowEditingTemplate>
-                            <MudTd DataLabel="Sign">
-                                <MudText>@context.settingName</MudText>
-                            </MudTd>
-                            <MudTd DataLabel="Name">
-                                @if (context.settingName.ToLower() is "verified" or "banned")
-                                {
-                                    <MudSelect T="string" @bind-Value="@context.settingValue">
-                                        <MudSelectItem Value="@("True")">True</MudSelectItem>
-                                        <MudSelectItem Value="@("False")">False</MudSelectItem>
-                                    </MudSelect>
-                                }
-                                else if (context.settingName.ToLower() == "profilepicture")
-                                {
-                                    <MudTextField @bind-Value="@context.settingValue" />
-                                }
-                                else if (context.settingName.ToLower() == "username")
-                                {
-                                    <MudTextField @bind-Value="@context.settingValue" Counter="20"  MaxLength="20" /> 
-                                }
-                                else if (context.settingName.ToLower() == "fullname")
-                                {
-                                    <MudTextField @bind-Value="@context.settingValue" Counter="30" MaxLength="30" />
-                                }
-                                else if (context.settingName.ToLower() == "bio")
-                                {
-                                    <MudTextField Lines="3" @bind-Value="@context.settingValue" />
-                                }
-                                else if (context.settingName.ToLower() == "role")
-                                {
-                                    <MudSelect T="string" @bind-Value="@context.settingValue">
-                                        <MudSelectItem Value="@UserAccount.Admin">Admin</MudSelectItem>
-                                        <MudSelectItem Value="@UserAccount.Secretary">Mod</MudSelectItem>
-                                        <MudSelectItem Value="@("User")">User</MudSelectItem>
-                                    </MudSelect>
-                                }
-                                else
-                                {
-                                    <MudTextField @bind-Value="@context.settingValue" Required />
-                                }
-                            </MudTd>
-                        </RowEditingTemplate>
-                        <PagerContent>
-                            <MudTablePager />
-                        </PagerContent>
-                        <EditButtonContent Context="button">
-                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
-                        </EditButtonContent>
-                    </MudTable>
-                    <MudButton Variant="Variant.Filled" OnClick="() => ResetPassword(Profile)" Color="Color.Tertiary">Send Reset password email</MudButton>
-                </MudCardContent>
-            </MudCard>
-        }
-    </Authorized>
-    <NotAuthorized>
-        <Auth />
-    </NotAuthorized>
-</AuthorizeView>
+@if (loaded && Profile != null)
+{
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo="Typo.h6">
+                Settings for 
+                <MudTooltip Text="Go to profile">
+                    <MudLink Typo="Typo.h6" Href="@($"/profile/{Profile.ID}")">@Profile.FullName</MudLink>
+                </MudTooltip>
+            </MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTable Breakpoint="Breakpoint.None" Items="@Settings" Dense="true" CanCancelEdit="true" Filter="new Func<Setting,bool>(FilterFunc)"
+            @bind-SelectedItem="selectedItem1" SortLabel="Sort By" CommitEditTooltip="Apply"
+                      RowEditPreview="BackupItem" RowEditCancel="ResetItemToOriginalValues"
+                      RowEditCommit="ItemHasBeenCommitted" EditTrigger="TableEditTrigger.EditButton">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Account Settings</MudText>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                </ToolBarContent>
+                <ColGroup>
+                    <col style="width:30%;" />
+                    <col style="width:60%;" />
+                    <col style="width:50px;" />
+                </ColGroup>
+                <HeaderContent>
+                    <MudTh><MudTableSortLabel SortBy="new Func<Setting, object>(x=>x.settingName)">Name</MudTableSortLabel></MudTh>
+                    <MudTh>Value</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="settingName">@context.settingName</MudTd>
+                    @if (context.settingName.ToLower() == "password")
+                    {
+                        <MudTd>*****</MudTd>
+                    }
+                    else
+                    {
+                        <MudTd>@context.settingValue</MudTd>
+                    }
+                </RowTemplate>
+                <RowEditingTemplate>
+                    <MudTd DataLabel="Sign">
+                        <MudText>@context.settingName</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Name">
+                        @if (context.settingName.ToLower() is "verified" or "banned")
+                        {
+                            <MudSelect T="string" @bind-Value="@context.settingValue">
+                                <MudSelectItem Value="@("True")">True</MudSelectItem>
+                                <MudSelectItem Value="@("False")">False</MudSelectItem>
+                            </MudSelect>
+                        }
+                        else if (context.settingName.ToLower() == "profilepicture")
+                        {
+                            <MudTextField @bind-Value="@context.settingValue" />
+                        }
+                        else if (context.settingName.ToLower() == "username")
+                        {
+                            <MudTextField @bind-Value="@context.settingValue" Counter="20"  MaxLength="20" /> 
+                        }
+                        else if (context.settingName.ToLower() == "fullname")
+                        {
+                            <MudTextField @bind-Value="@context.settingValue" Counter="30" MaxLength="30" />
+                        }
+                        else if (context.settingName.ToLower() == "bio")
+                        {
+                            <MudTextField Lines="3" @bind-Value="@context.settingValue" />
+                        }
+                        else if (context.settingName.ToLower() == "role")
+                        {
+                            <MudSelect T="string" @bind-Value="@context.settingValue">
+                                <MudSelectItem Value="@UserAccount.Admin">Admin</MudSelectItem>
+                                <MudSelectItem Value="@UserAccount.Secretary">Secretary</MudSelectItem>
+                                <MudSelectItem Value="@UserAccount.Mechanic">Mechanic</MudSelectItem>
+                                <MudSelectItem Value="@UserAccount.User">User</MudSelectItem>
+                            </MudSelect>
+                        }
+                        else
+                        {
+                            <MudTextField @bind-Value="@context.settingValue" Required />
+                        }
+                    </MudTd>
+                </RowEditingTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+                <EditButtonContent Context="button">
+                    <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
+                </EditButtonContent>
+            </MudTable>
+            <MudButton Variant="Variant.Filled" OnClick="() => ResetPassword(Profile)" Color="Color.Tertiary">Send Reset password email</MudButton>
+        </MudCardContent>
+    </MudCard>
+}
+else if (loaded && Profile == null) //it has loaded but hasnt gotten a profile
+{
+    <h3>Profile not found!</h3>
+}
+else
+{
+    <h3>Profile is loading...</h3>
+}
 
 
 @code {
-    public class Setting
-    {
-        public string settingName { get; set; }
-        public string settingValue { get; set; }
+    [Parameter]
+    public string? ID { get; set; }
 
-        public Setting(string name, string value)
+    public int parsedId
+    {
+        get
         {
-            this.settingName = name;
-            this.settingValue = value;
+            if (int.TryParse(ID, out int i))
+                return i;
+            else
+                return -1;
         }
     }
 
-    public List<Setting> Settings = new List<Setting>();
-
-
+    [CascadingParameter(Name = "AuthSession")]
+    public bool loggedIn { get; set; }
 
     [CascadingParameter(Name = "AuthUser")]
     public UserAccount User { get; set; } = null;
 
     public UserAccount Profile { get; set; }
+    private bool loaded;
 
-    [CascadingParameter(Name = "AuthSession")]
-    public bool isLoggedIn { get; set; }
 
-    [Parameter]
-    public string? AccountIdStr { get; set; } = null;
+    public List<Setting> Settings = new List<Setting>();
 
-    public int? AccountId = null;
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Profile = User;
-        AccountId = ParsingExtention.IntTryParse(AccountIdStr);
-        if (User != null && AccountId != null && User.Role == UserAccount.Admin)
+        await Task.Delay(100);
+        if (loggedIn && User != null && !loaded)
         {
-            Profile = (await userRepository.GetUsersByFilter(id: (int)AccountId)).FirstOrDefault();
-        }
-        if (Profile == null) return;
-
-        Settings = new List<Setting>()
-        {
-            new("Username", Profile.Username),
-            new("FullName", Profile.FullName),
-            new("Bio", Profile.Bio),
-            new("ProfilePicture", Profile.ProfilePicture),
-            new("Email", Profile.Email),
-        };
-
-
-        if (User != null && AccountId != null && User.Role == UserAccount.Admin)
-        {
-            Settings.AddRange(new List<Setting>()
+            if (parsedId == -1)
             {
-                new("Role", Profile.Role),
-                new("Username", Profile.Username),
-                new("Verified", Profile.Verified.ToString()),
-                new("Banned", Profile.Banned.ToString()),
-            });
+                Profile = User;
+            }
+            else
+            {
+                Profile = (await userRepository.GetUsersByFilter(id: parsedId)).FirstOrDefault();
+            }
+            loaded = true;
+            LoadSettings();
+            StateHasChanged();
+        }
+        else if (!loaded)
+        {
+            navManager.NavigateTo("/login", true);
+            return;
         }
     }
 
+
+    private void LoadSettings()
+    {
+        if (Profile == null) return;
+
+        if (User != null)
+        {
+            Settings = new List<Setting>()
+            {
+                new("Username", Profile.Username),
+                new("FullName", Profile.FullName),
+                new("Bio", Profile.Bio),
+                new("ProfilePicture", Profile.ProfilePicture),
+                new("Email", Profile.Email),
+            };
+            if (User != null && ID != null && User.Role == UserAccount.Admin)
+            {
+                Settings.AddRange(new List<Setting>()
+                {
+                    new("Role", Profile.Role),
+                    new("Verified", Profile.Verified.ToString()),
+                    new("Banned", Profile.Banned.ToString()),
+                });
+            }
+
+        }
+
+    }
 
     private string searchString = "";
     private Setting selectedItem1 = null;
@@ -200,7 +220,7 @@
             userRepository.UpdateUserByProperty(Profile.ID, Setting.settingName, Setting.settingValue);
         }
 
-        if (AccountId == null) 
+        if (ID == null) 
         {
             //if you're editing your own profile, you need to clear the session by logging out
             navManager.NavigateTo("/logout");
@@ -281,4 +301,15 @@
         return false;
     }
 
+    public class Setting
+    {
+        public string settingName { get; set; }
+        public string settingValue { get; set; }
+
+        public Setting(string name, string value)
+        {
+            this.settingName = name;
+            this.settingValue = value;
+        }
+    }
 }

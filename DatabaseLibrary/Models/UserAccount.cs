@@ -4,7 +4,7 @@ using System.Web;
 
 namespace DatabaseLibrary.Models
 {
-    [DebuggerDisplay("{Id}:{Username}")]
+    [DebuggerDisplay("{ID}:{Username}")]
     public class UserAccount
     {
         public UserAccount() { }
