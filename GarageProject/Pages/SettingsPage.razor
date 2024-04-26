@@ -1,9 +1,11 @@
 ﻿@page "/settings"
 @page "/settings/{ID}"
+@using System.Security.Claims;
 
 @inject NavigationManager navManager
 @inject IUserRepository userRepository
 @inject ISnackbar snackBar;
+@inject AuthenticationStateProvider authProvider;
 
 @if (loaded && Profile != null)
 {
@@ -137,33 +139,35 @@ else
 
     public List<Setting> Settings = new List<Setting>();
 
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        await Task.Delay(100);
-        if (loggedIn && User != null && !loaded)
+        var authState = await authProvider.GetAuthenticationStateAsync();
+        var claims = authState.User.Claims;
+        if (claims != null && claims.Count() > 0 && !loaded)
         {
-            if (parsedId == -1)
+            var sidClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid);
+            int? userId = ParsingExtention.IntTryParse(sidClaim.Value);
+            if (userId != null)
             {
-                Profile = User;
+                if (parsedId == -1) //there was no id in the url, get the users own profile instead
+                {
+                    Profile = (await userRepository.GetUsersByFilter(id: (int)userId)).FirstOrDefault();
+                    LoadSettings(Profile);
+                }
+                else
+                {
+                    var loggedIn = (await userRepository.GetUsersByFilter(id: (int)userId)).FirstOrDefault();
+                    Profile = (await userRepository.GetUsersByFilter(id: parsedId)).FirstOrDefault();
+                    LoadSettings(loggedIn);
+                }
+                loaded = true;
+                StateHasChanged();
             }
-            else
-            {
-                Profile = (await userRepository.GetUsersByFilter(id: parsedId)).FirstOrDefault();
-            }
-            loaded = true;
-            LoadSettings();
-            StateHasChanged();
-        }
-        else if (!loaded)
-        {
-            navManager.NavigateTo("/login", true);
-            return;
         }
     }
 
 
-    private void LoadSettings()
+    private void LoadSettings(UserAccount User)
     {
         if (Profile == null) return;
 

@@ -31,6 +31,7 @@ namespace GarageProject.Auth
                 {
                     new Claim(ClaimTypes.Name, userSession.Username),
                     new Claim(ClaimTypes.Role, userSession.Role),
+                    new Claim(ClaimTypes.Sid, userSession.IdStr),
                 }, "CustomAuth"));
 
 
@@ -57,6 +58,7 @@ namespace GarageProject.Auth
                 {
                     new Claim(ClaimTypes.Name, userSession.Username),
                     new Claim(ClaimTypes.Role, userSession.Role),
+                    new Claim(ClaimTypes.Sid, userSession.IdStr),
                 }));
             }
             else

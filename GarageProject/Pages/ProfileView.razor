@@ -1,9 +1,11 @@
 ﻿@page "/profile"
 @page "/profile/{id}"
+@using System.Security.Claims;
 
 @inject NavigationManager navManager;
 @inject IUserRepository userRepository;
 @inject IDialogService dialogService;
+@inject AuthenticationStateProvider authProvider;
 
 @if (loaded && Profile != null)
 {
@@ -99,30 +101,25 @@ else
     public UserAccount Profile { get; set; } = null;
     private bool loaded;
 
-
-
-
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await Task.Delay(100);
-        if (loggedIn && User != null && !loaded)
-        {
-            Profile = (await userRepository.GetUsersByFilter(id: User.ID)).FirstOrDefault();
-            loaded = true;
-            StateHasChanged();
-        }
-        else if (!loaded)
-        {
-            navManager.NavigateTo("/login", true);
-            return;
-        }
-
-    }
-
     protected override async Task OnInitializedAsync()
     {
-        if (id != -1)
+        if (id == -1) //there was no id in the url, get the users own profile instead
+        {
+            var authState = await authProvider.GetAuthenticationStateAsync();
+            var claims = authState.User.Claims;
+            if (claims != null && claims.Count() > 0 && !loaded)
+            {
+                var sidClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid);
+                int? userId = ParsingExtention.IntTryParse(sidClaim.Value);
+                if (userId != null)
+                {
+                    Profile = (await userRepository.GetUsersByFilter(id: (int)userId)).FirstOrDefault();
+                    loaded = true;
+                    StateHasChanged();
+                }
+            }
+        }
+        else
         {
             Profile = (await userRepository.GetUsersByFilter(id:id)).FirstOrDefault();
             loaded = true;

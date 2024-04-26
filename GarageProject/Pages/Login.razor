@@ -258,6 +258,7 @@ else
             {
                 Username = userAccount.Username,
                 Role = userAccount.Role,
+                IdStr = userAccount.ID.ToString()
             });
         await protectedSessionStorage.SetAsync("user", (UserAccount)userAccount);
 
