@@ -12,8 +12,9 @@ public class ApointmentDTO
 
     //the user who has requested the appointment
     // (send emails when appointment aproved or rejectec or when completed etcetera)
-    public int ApointmentCreatorID { get; set; }
-    public DateTime Date { get; set; }
+    public int AppointmentCreatorID { get; set; }
+    public DateTime PlannedDate { get; set; }
+    public DateTime CreationDate { get; set; }
     public Status Status { get; set; }
     public string Description { get; set; }
     public int InvoiceID { get; set; }

@@ -13,6 +13,4 @@ public enum Status
     Aproved, //the appointment has been aproved
     InProgress, //the appointment is in progress
     Completed, // the appointment is fully completed
-
-    MechanicAssigned, //has a mechanic assigned
 }

@@ -1,0 +1,57 @@
+﻿@page "/Appointments"
+@using Heron.MudCalendar
+@using MudBlazor.Extensions;
+@using System.Security.Claims;
+@using DatabaseLibrary.Database.Appointments;
+
+@inject IUserRepository userRepository;
+@inject IAppointmentRepository appointmentRepository;
+@inject AuthenticationStateProvider authProvider;
+
+<MudCalendar Items="Appointments" />
+
+@code {
+    private List<CalendarItem> Appointments = new List<CalendarItem>();
+
+
+    public UserAccount Profile { get; set; } = null;
+    private bool loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authProvider.GetAuthenticationStateAsync();
+        var claims = authState.User.Claims;
+        if (claims != null && claims.Count() > 0 && !loaded)
+        {
+            var sidClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid);
+            int? userId = ParsingExtention.IntTryParse(sidClaim.Value);
+            if (userId != null)
+            {
+                Profile = (await userRepository.GetUsersByFilter(id: (int)userId)).FirstOrDefault();
+                if (Profile != null && Profile.Role == UserAccount.Mechanic)
+                {
+                    await LoadAppointments();
+                    loaded = true;
+                    StateHasChanged();
+                }
+            }
+        }
+
+    }
+
+    private async Task LoadAppointments()
+    {
+        var appointments = (await appointmentRepository.GetAppointmentsByFilter(mechanicId:Profile.ID));
+        Appointments.Clear();
+
+        Appointments = appointments.Select(a =>
+            new CalendarItem()
+            {
+                Start = a.PlannedDate,
+                    End = a.PlannedDate.AddHours(12.5),
+                Text = "Appointment scheduled for " + a.AppointmentCreator.FullName
+            }
+        ).ToList();
+    }
+
+}

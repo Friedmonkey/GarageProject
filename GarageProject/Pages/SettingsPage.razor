@@ -127,12 +127,6 @@ else
         }
     }
 
-    [CascadingParameter(Name = "AuthSession")]
-    public bool loggedIn { get; set; }
-
-    [CascadingParameter(Name = "AuthUser")]
-    public UserAccount User { get; set; } = null;
-
     public UserAccount Profile { get; set; }
     private bool loaded;
 

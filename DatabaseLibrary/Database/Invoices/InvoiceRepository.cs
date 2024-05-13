@@ -32,7 +32,7 @@ public class InvoiceRepository : IInvoiceRepository
         {
             ID = entity.ID,
             Date = entity.Date,
-            ApointmentCost = entity.ApointmentCost,
+            AppointmentCost = entity.AppointmentCost,
             Brand = entity.Brand,
             Customer = customer,
             Materials = materials,
@@ -46,7 +46,7 @@ public class InvoiceRepository : IInvoiceRepository
         { 
             ID = entity.ID,
             Date = entity.Date,
-            ApointmentCost = entity.ApointmentCost,
+            AppointmentCost = entity.AppointmentCost,
             Brand = entity.Brand,
             CustomerID = entity.Customer.ID,
             ServiceCost = entity.ServiceCost
@@ -133,7 +133,7 @@ public class InvoiceRepository : IInvoiceRepository
     }
     #endregion
     #region Update 
-    public async Task UpdateInvoice(int id, int? customerID = null, DateTime? date = null, float? serviceCost = null, float? apointmentCost = null, string? brand = null)
+    public async Task UpdateInvoice(int id, int? customerID = null, DateTime? date = null, float? serviceCost = null, float? AppointmentCost = null, string? brand = null)
     {
         var result = (await _database.Invoices.FirstOrDefaultAsync(a => a.ID == id));
         if (result != null)
@@ -144,8 +144,8 @@ public class InvoiceRepository : IInvoiceRepository
                 result.Date = (DateTime)date;
             if (serviceCost != null)
                 result.ServiceCost = (float)serviceCost;
-            if (apointmentCost != null)
-                result.ApointmentCost = (float)apointmentCost;
+            if (AppointmentCost != null)
+                result.AppointmentCost = (float)AppointmentCost;
             if (brand != null)
                 result.Brand = brand;
 

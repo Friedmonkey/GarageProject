@@ -24,7 +24,7 @@ public class DatabaseContext : DbContext
 
     public DbSet<UserAccount> Users { get; set; }
 
-    public DbSet<ApointmentDTO> Apointments { get; set; }
+    public DbSet<ApointmentDTO> Appointments { get; set; }
 
     public DbSet<InvoiceDTO> Invoices { get; set; }
     public DbSet<InvoiceMaterialCouple> InvoiceMaterialCouples { get; set; }

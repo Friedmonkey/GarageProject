@@ -14,6 +14,6 @@ public class InvoiceDTO
     public int CustomerID { get; set; }
     public DateTime Date { get; set; }
     public float ServiceCost { get; set; }
-    public float ApointmentCost { get; set; }
+    public float AppointmentCost { get; set; }
     public string Brand { get; set; }
 }

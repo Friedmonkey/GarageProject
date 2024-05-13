@@ -9,9 +9,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DatabaseLibrary.Database.Apointments
+namespace DatabaseLibrary.Database.Appointments
 {
-    public class ApointmentRepository : IApointmentRepository
+    public class ApointmentRepository : IAppointmentRepository
     {
         private readonly DatabaseContext _database;
         private readonly IInvoiceRepository _invoiceRepository;
@@ -22,21 +22,22 @@ namespace DatabaseLibrary.Database.Apointments
         }
 
         #region Helpers
-        private async Task<Apointment?> Resolve(ApointmentDTO entity) 
+        private async Task<Appointment?> Resolve(ApointmentDTO entity) 
         {
-            UserAccount? apointmentCreator = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.ApointmentCreatorID);
-            if (apointmentCreator == null) return null; //throw new Exception("apointment creator not found!");
+            UserAccount? AppointmentCreator = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.AppointmentCreatorID);
+            if (AppointmentCreator == null) return null; //throw new Exception("Appointment creator not found!");
 
             Invoice? invoice = await _invoiceRepository.GetInvoiceByFilter(id: entity.InvoiceID);
             if (invoice == null) return null; //throw new Exception("invoice not found!");
 
             UserAccount? mechanicAssigned = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.MechanicAssignedID);
 
-            return new Apointment()
+            return new Appointment()
             {
                 ID = entity.ID,
-                Date = entity.Date,
-                ApointmentCreator = apointmentCreator,
+                CreationDate = entity.CreationDate,
+                PlannedDate = entity.PlannedDate,
+                AppointmentCreator = AppointmentCreator,
                 Description = entity.Description,
                 Invoice = invoice,
                 MechanicAssigned = mechanicAssigned,
@@ -44,13 +45,14 @@ namespace DatabaseLibrary.Database.Apointments
                 Status = entity.Status
             };
         }
-        private async Task<ApointmentDTO> Convert(Apointment entity)
+        private async Task<ApointmentDTO> Convert(Appointment entity)
         {
             return new ApointmentDTO()
             {
                 ID = entity.ID,
-                Date = entity.Date,
-                ApointmentCreatorID = entity.ApointmentCreator.ID,
+                CreationDate = entity.CreationDate,
+                PlannedDate = entity.PlannedDate,
+                AppointmentCreatorID = entity.AppointmentCreator.ID,
                 Description = entity.Description,
                 InvoiceID = entity.Invoice.ID,
                 MechanicAssignedID = entity?.MechanicAssigned?.ID,
@@ -61,11 +63,11 @@ namespace DatabaseLibrary.Database.Apointments
         #endregion
 
         #region Create 
-        public async Task<string> CreateAppointment(Apointment apointment)
+        public async Task<string> CreateAppointment(Appointment Appointment)
         {
-            if (await _database.Apointments.FirstOrDefaultAsync(a => a.Date == apointment.Date) == null)
+            if (await _database.Appointments.FirstOrDefaultAsync(a => a.PlannedDate == Appointment.PlannedDate) == null)
             {
-                _database.Apointments.Add(await Convert(apointment));
+                _database.Appointments.Add(await Convert(Appointment));
                 _database.SaveChanges();
                 return "success";
             }
@@ -73,36 +75,36 @@ namespace DatabaseLibrary.Database.Apointments
         }
         #endregion
         #region Read 
-        public async Task<List<Apointment>> GetApointmentsByFilter(int? id = null, int? creatorId = null, Status? status = null, int? mechanicId = null)
+        public async Task<List<Appointment>> GetAppointmentsByFilter(int? id = null, int? creatorId = null, Status? status = null, int? mechanicId = null)
         {
-            List<Apointment> apointments = new List<Apointment>();
+            List<Appointment> Appointments = new List<Appointment>();
 
-            var querry = (await _database.Apointments.Where(a =>
+            var querry = (await _database.Appointments.Where(a =>
                 (id == null || a.ID == id) &&
-                (creatorId == null || a.ApointmentCreatorID == creatorId) &&
+                (creatorId == null || a.AppointmentCreatorID == creatorId) &&
                 (status == null || a.Status == status) &&
                 (mechanicId == null || a.MechanicAssignedID == mechanicId)
             ).ToListAsync());
 
-            foreach (var apointment in querry)
+            foreach (var Appointment in querry)
             {
-                var a = await Resolve(apointment);
+                var a = await Resolve(Appointment);
                 if (a != null)
-                    apointments.Add(a);
+                    Appointments.Add(a);
             }
-            return apointments;
+            return Appointments;
         }
         #endregion
         #region Update 
         public async Task UpdateAppointment(int id, int? creatorId = null, DateTime? date = null, Status? status = null, string? description = null, int? invoiceId = null, int? mechanicId = null, string? secreteryNote = null)
         {
-            var result = (await _database.Apointments.FirstOrDefaultAsync(a => a.ID == id));
+            var result = (await _database.Appointments.FirstOrDefaultAsync(a => a.ID == id));
             if (result != null)
             {
                 if (creatorId != null)
-                    result.ApointmentCreatorID = (int)creatorId;
+                    result.AppointmentCreatorID = (int)creatorId;
                 if (date != null)
-                    result.Date = (DateTime)date;
+                    result.CreationDate = (DateTime)date;
                 if (status != null)
                     result.Status = (Status)status;
                 if (description != null)
@@ -122,8 +124,8 @@ namespace DatabaseLibrary.Database.Apointments
         #region Delete 
         public async Task DeleteAppointment(int id)
         {
-            var result = (await _database.Apointments.FirstOrDefaultAsync(a => a.ID == id));
-            _database.Apointments.Remove(result);
+            var result = (await _database.Appointments.FirstOrDefaultAsync(a => a.ID == id));
+            _database.Appointments.Remove(result);
             _database.SaveChanges();
         }
         #endregion

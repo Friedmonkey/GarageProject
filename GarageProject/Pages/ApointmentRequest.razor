@@ -1,0 +1,88 @@
+﻿@page "/RequestAppointment"
+@using MudBlazor.Extensions;
+@using System.Security.Claims;
+@using DatabaseLibrary.Database.Appointments;
+
+@inject IUserRepository userRepository;
+@inject IAppointmentRepository appointmentRepository;
+@inject AuthenticationStateProvider authProvider;
+@inject ISnackbar snackBar;
+
+@if (CurrentAppointent != null)
+{
+    <MudCard>
+        <MudCardHeader>
+            <MudText>Request a appointment</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudDatePicker Adornment="Adornment.Start" AdornmentColor="Color.Info" IsDateDisabledFunc="(d) => d < DateTime.Now" Label="Starting date" Editable="true" @bind-Date="PlannedDate" />
+
+            <MudTextField Lines="2" AutoGrow="true" @bind-Value="CurrentAppointent.Description" Label="Enlighten the problem you are having" />
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="RequestAppointment">Request appointment</MudButton>
+        </MudCardActions>
+    </MudCard>
+}
+
+@code {
+    public Appointment? CurrentAppointent { get; set; } = null;  
+    public UserAccount Profile { get; set; } = null;
+    private bool loaded;
+    private DateTime? PlannedDate = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authProvider.GetAuthenticationStateAsync();
+        var claims = authState.User.Claims;
+        if (claims != null && claims.Count() > 0 && !loaded)
+        {
+            var sidClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid);
+            int? userId = ParsingExtention.IntTryParse(sidClaim.Value);
+            if (userId != null)
+            {
+                Profile = (await userRepository.GetUsersByFilter(id: (int)userId)).FirstOrDefault();
+                if (Profile != null)
+                {
+                    await LoadAppointment();
+                    loaded = true;
+                    StateHasChanged();
+                }
+            }
+        }
+
+    }
+    private async Task LoadAppointment()
+    {
+        CurrentAppointent = new Appointment()
+        {
+            AppointmentCreator = Profile,
+            CreationDate = DateTime.Now,
+            PlannedDate = DateTime.Now.AddDays(1),
+            Description = "I have a problem with my car, Namely....",
+            Status = Status.Requested,
+            Invoice = null,
+        };
+    }
+
+    private async Task RequestAppointment()
+    {
+        if (PlannedDate == null)
+        {
+            snackBar.Add("Please select a date for your appointment", Severity.Warning);
+            return;
+        }
+
+        CurrentAppointent.PlannedDate = (DateTime)PlannedDate;
+        var result = await appointmentRepository.CreateAppointment(CurrentAppointent);
+        if (result == "success")
+        {
+            snackBar.Add("Your appointment has been requested, youll be notified via email on any updates!", Severity.Success);
+        }
+        else
+        {
+            snackBar.Add(result, Severity.Error);
+        }
+
+    }
+}

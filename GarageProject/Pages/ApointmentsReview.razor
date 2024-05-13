@@ -1,0 +1,58 @@
+﻿@page "/ApproveAppointments"
+@using MudBlazor.Extensions;
+@using System.Security.Claims;
+@using DatabaseLibrary.Database.Appointments;
+
+@inject IUserRepository userRepository;
+@inject IAppointmentRepository appointmentRepository;
+@inject AuthenticationStateProvider authProvider;
+
+@foreach (var CurrentAppointent in Appointments)
+{
+    <MudCard>
+        <MudCardHeader>
+            <MudText>Request a appointment</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText>@CurrentAppointent.PlannedDate.ToLongTimeString()</MudText>
+    
+            <MudTextField ReadOnly="true" Lines="2" AutoGrow="true" Value="CurrentAppointent.Description" Label="Enlighten the problem you are having" />
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    private List<Appointment> Appointments = new List<Appointment>();
+
+
+    public UserAccount Profile { get; set; } = null;
+    private bool loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authProvider.GetAuthenticationStateAsync();
+        var claims = authState.User.Claims;
+        if (claims != null && claims.Count() > 0 && !loaded)
+        {
+            var sidClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid);
+            int? userId = ParsingExtention.IntTryParse(sidClaim.Value);
+            if (userId != null)
+            {
+                Profile = (await userRepository.GetUsersByFilter(id: (int)userId)).FirstOrDefault();
+                if (Profile != null && Profile.Role == UserAccount.Mechanic)
+                {
+                    await LoadAppointments();
+                    loaded = true;
+                    StateHasChanged();
+                }
+            }
+        }
+
+    }
+
+    private async Task LoadAppointments()
+    {
+        Appointments = (await appointmentRepository.GetAppointmentsByFilter(mechanicId: Profile.ID)).ToList();
+    }
+
+}

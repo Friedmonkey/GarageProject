@@ -1,16 +1,16 @@
 ﻿using DatabaseLibrary.Models;
 
-namespace DatabaseLibrary.Database.Apointments;
+namespace DatabaseLibrary.Database.Appointments;
 
 //Following the Crud syntax
 //Create
 //Read
 //Update
 //Delete
-public interface IApointmentRepository
+public interface IAppointmentRepository
 {
-    Task<string> CreateAppointment(Apointment apointment);
-    Task<List<Apointment>> GetApointmentsByFilter(
+    Task<string> CreateAppointment(Appointment Appointment);
+    Task<List<Appointment>> GetAppointmentsByFilter(
         int? id = null,
         int? creatorId = null,
         Status? status = null,

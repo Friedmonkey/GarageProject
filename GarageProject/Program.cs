@@ -12,7 +12,7 @@ using BlazorPro.BlazorSize;
 using DatabaseLibrary.Models;
 using System.Reflection;
 using DatabaseLibrary.Database;
-using DatabaseLibrary.Database.Apointments;
+using DatabaseLibrary.Database.Appointments;
 using DatabaseLibrary.Database.Invoices;
 using DatabaseLibrary.Database.Users;
 using DatabaseLibrary.Database.Materials;
@@ -68,7 +68,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-builder.Services.AddScoped<IApointmentRepository, ApointmentRepository>();
+builder.Services.AddScoped<IAppointmentRepository, ApointmentRepository>();
 
 
 builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();

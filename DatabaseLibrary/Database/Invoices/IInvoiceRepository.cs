@@ -27,7 +27,7 @@ public interface IInvoiceRepository
         int? customerID = null,
         DateTime? date = null,
         float? serviceCost = null,
-        float? apointmentCost = null,
+        float? AppointmentCost = null,
         string? brand = null
     );
     Task DeleteInvoice(int id);

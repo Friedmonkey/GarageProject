@@ -13,7 +13,7 @@ public class Invoice
     public UserAccount Customer { get; set; }
     public DateTime Date { get; set; }
     public float ServiceCost { get; set; }
-    public float ApointmentCost { get; set; }
+    public float AppointmentCost { get; set; }
     public string Brand { get; set; }
     public List<Material> Materials { get; set; }
 
@@ -22,5 +22,5 @@ public class Invoice
 
 
     [NotMapped]
-    public float TotalCost => MaterialCost + ServiceCost + ApointmentCost;
+    public float TotalCost => MaterialCost + ServiceCost + AppointmentCost;
 }
