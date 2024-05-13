@@ -15,7 +15,7 @@
             <MudText>Request a appointment</MudText>
         </MudCardHeader>
         <MudCardContent>
-            <MudDatePicker Adornment="Adornment.Start" AdornmentColor="Color.Info" IsDateDisabledFunc="(d) => d < DateTime.Now" Label="Starting date" Editable="true" @bind-Date="PlannedDate" />
+            <MudDatePicker Adornment="Adornment.Start" AdornmentColor="Color.Info" IsDateDisabledFunc="IsDateDisabled" Label="Starting date" Editable="true" @bind-Date="PlannedDate" />
 
             <MudTextField Lines="2" AutoGrow="true" @bind-Value="CurrentAppointent.Description" Label="Enlighten the problem you are having" />
         </MudCardContent>
@@ -30,6 +30,7 @@
     public UserAccount Profile { get; set; } = null;
     private bool loaded;
     private DateTime? PlannedDate = null;
+    private List<DateTime> ExistingAppointments = new List<DateTime>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,11 +59,13 @@
         {
             AppointmentCreator = Profile,
             CreationDate = DateTime.Now,
-            PlannedDate = DateTime.Now.AddDays(1),
+            PlannedDate = DateTime.Now,
             Description = "I have a problem with my car, Namely....",
             Status = Status.Requested,
             Invoice = null,
         };
+
+        ExistingAppointments = (await appointmentRepository.GetAppointmentsByFilter(status:Status.Taken)).Select(a => a.PlannedDate).ToList();
     }
 
     private async Task RequestAppointment()
@@ -84,5 +87,10 @@
             snackBar.Add(result, Severity.Error);
         }
 
+    }
+    private bool IsDateDisabled(DateTime dateTime)
+    {
+        if (dateTime < DateTime.Now) return true;
+        return !ExistingAppointments.TrueForAll(d => d < dateTime || d > dateTime.AddHours(1));
     }
 }

@@ -7,15 +7,18 @@
         @if (User.Role is UserAccount.Admin or UserAccount.Secretary)
         {
             <MudNavLink Href="import" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.ImportContacts"><p class="menu-wrapper">Import</p></MudNavLink>
+        }
+        @if (User.Role is UserAccount.Admin or UserAccount.User)
+        {
+            <MudNavLink Href="RequestAppointment" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.CalendarToday"><p class="menu-wrapper">Create Appointment</p></MudNavLink>
+        }
+        @if (User.Role is UserAccount.Admin or UserAccount.Secretary)
+        {
             <MudNavLink Href="ApproveAppointments" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.DateRange"><p class="menu-wrapper">Approve Appointments</p></MudNavLink>
         }
         @if (User.Role is UserAccount.Admin or UserAccount.Mechanic)
         {
             <MudNavLink Href="Appointments" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.CalendarMonth"><p class="menu-wrapper">Appointments</p></MudNavLink>
-        }
-        @if (User.Role is UserAccount.Admin or UserAccount.User)
-        {
-            <MudNavLink Href="RequestAppointment" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.CalendarToday"><p class="menu-wrapper">Create Appointment</p></MudNavLink>
         }
     }
     <MudNavLink Href="users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.Group"><p class="menu-wrapper">Users</p></MudNavLink>

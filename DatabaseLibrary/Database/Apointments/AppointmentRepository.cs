@@ -28,7 +28,7 @@ namespace DatabaseLibrary.Database.Appointments
             if (AppointmentCreator == null) return null; //throw new Exception("Appointment creator not found!");
 
             Invoice? invoice = await _invoiceRepository.GetInvoiceByFilter(id: entity.InvoiceID);
-            if (invoice == null) return null; //throw new Exception("invoice not found!");
+            //if (invoice == null) return null; //throw new Exception("invoice not found!");
 
             UserAccount? mechanicAssigned = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.MechanicAssignedID);
 
@@ -54,9 +54,9 @@ namespace DatabaseLibrary.Database.Appointments
                 PlannedDate = entity.PlannedDate,
                 AppointmentCreatorID = entity.AppointmentCreator.ID,
                 Description = entity.Description,
-                InvoiceID = entity.Invoice.ID,
+                InvoiceID = entity?.Invoice?.ID,
                 MechanicAssignedID = entity?.MechanicAssigned?.ID,
-                SecreteryNote = entity.SecreteryNote,
+                SecreteryNote = entity?.SecreteryNote,
                 Status = entity.Status
             };
         }
@@ -82,7 +82,7 @@ namespace DatabaseLibrary.Database.Appointments
             var querry = (await _database.Appointments.Where(a =>
                 (id == null || a.ID == id) &&
                 (creatorId == null || a.AppointmentCreatorID == creatorId) &&
-                (status == null || a.Status == status) &&
+                (status == null || ((Status)status).HasFlag(a.Status)) &&
                 (mechanicId == null || a.MechanicAssignedID == mechanicId)
             ).ToListAsync());
 

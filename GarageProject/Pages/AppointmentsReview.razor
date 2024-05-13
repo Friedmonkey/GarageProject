@@ -11,7 +11,7 @@
 {
     <MudCard>
         <MudCardHeader>
-            <MudText>Request a appointment</MudText>
+            <MudText>Appointment</MudText>
         </MudCardHeader>
         <MudCardContent>
             <MudText>@CurrentAppointent.PlannedDate.ToLongTimeString()</MudText>
@@ -39,7 +39,7 @@
             if (userId != null)
             {
                 Profile = (await userRepository.GetUsersByFilter(id: (int)userId)).FirstOrDefault();
-                if (Profile != null && Profile.Role == UserAccount.Mechanic)
+                if (Profile != null && (Profile.Role is UserAccount.Admin or UserAccount.Secretary))
                 {
                     await LoadAppointments();
                     loaded = true;
@@ -52,7 +52,7 @@
 
     private async Task LoadAppointments()
     {
-        Appointments = (await appointmentRepository.GetAppointmentsByFilter(mechanicId: Profile.ID)).ToList();
+        Appointments = (await appointmentRepository.GetAppointmentsByFilter(status:Status.Requested)).OrderBy(a => a.CreationDate).ToList();
     }
 
 }
