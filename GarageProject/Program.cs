@@ -68,7 +68,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-builder.Services.AddScoped<IAppointmentRepository, ApointmentRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
 
 builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();

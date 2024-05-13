@@ -11,18 +11,18 @@ using System.Threading.Tasks;
 
 namespace DatabaseLibrary.Database.Appointments
 {
-    public class ApointmentRepository : IAppointmentRepository
+    public class AppointmentRepository : IAppointmentRepository
     {
         private readonly DatabaseContext _database;
         private readonly IInvoiceRepository _invoiceRepository;
-        public ApointmentRepository(DatabaseContext db, IInvoiceRepository invoiceRepository)
+        public AppointmentRepository(DatabaseContext db, IInvoiceRepository invoiceRepository)
         {
             _database = db;
             this._invoiceRepository = invoiceRepository;
         }
 
         #region Helpers
-        private async Task<Appointment?> Resolve(ApointmentDTO entity) 
+        private async Task<Appointment?> Resolve(AppointmentDTO entity) 
         {
             UserAccount? AppointmentCreator = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.AppointmentCreatorID);
             if (AppointmentCreator == null) return null; //throw new Exception("Appointment creator not found!");
@@ -45,9 +45,9 @@ namespace DatabaseLibrary.Database.Appointments
                 Status = entity.Status
             };
         }
-        private async Task<ApointmentDTO> Convert(Appointment entity)
+        private async Task<AppointmentDTO> Convert(Appointment entity)
         {
-            return new ApointmentDTO()
+            return new AppointmentDTO()
             {
                 ID = entity.ID,
                 CreationDate = entity.CreationDate,

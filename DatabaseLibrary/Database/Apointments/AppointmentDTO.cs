@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DatabaseLibrary.Models;
 
-public class ApointmentDTO
+public class AppointmentDTO
 {
     public int ID { get; set; }
 
