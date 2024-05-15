@@ -9,7 +9,7 @@
 @inject ISnackbar snackBar;
 @inject IDialogService DialogService;
 
-<MudExtensions.MudLoading Loading="!loaded" Text="Fetching...">
+<MudExtensions.MudLoading Loading="!loaded || isBusy" Overlap="true" Text="Loading...">
     @if (Appointments.Count() == 0)
     {
         <MudText Typo="Typo.h2">No appointments yet!</MudText>
@@ -28,7 +28,11 @@
                         <MudSelectItem Value="(UserAccount?)null">None</MudSelectItem>
                         @foreach (var mechanic in Mechanics)
                         {
-                            <MudSelectItem Value="@mechanic">@mechanic.FullName</MudSelectItem>
+                            var appointments = MechanicAppointments[mechanic.ID];
+                            //mechanic already has a date planned continue
+                            bool isBusyOnThatDate = (appointments.Any(a => a.PlannedDate == appointment.PlannedDate));
+
+                            <MudSelectItem Disabled="isBusyOnThatDate" Value="@mechanic">@mechanic.FullName</MudSelectItem>
                         }
                     </MudSelect>
                 </MudCardContent>
@@ -47,6 +51,7 @@
 @code {
     private List<Appointment> Appointments = new List<Appointment>();
     private List<UserAccount> Mechanics = new List<UserAccount>();
+    private Dictionary<int, List<Appointment>> MechanicAppointments = new Dictionary<int, List<Appointment>>();
 
     public UserAccount Profile { get; set; } = null;
     private bool loaded;
@@ -82,6 +87,11 @@
     private async Task LoadMechanics()
     {
         Mechanics = await userRepository.GetUsersByFilter(role: UserAccount.Mechanic);
+        MechanicAppointments.Clear();
+        foreach (var mechanic in Mechanics)
+        {
+            MechanicAppointments.Add(mechanic.ID, await appointmentRepository.GetAppointmentsByFilter(mechanicId: mechanic.ID));
+        } 
     }
 
     private async Task ApproveAppointment(Appointment appointment)
@@ -93,8 +103,11 @@
         }
 
         // Here you would update the appointment in the database with the assigned mechanic
+        isBusy = true;
         await appointmentRepository.UpdateAppointment(appointment.ID, status:Status.Aproved, mechanicId: appointment.MechanicAssigned.ID);
         await LoadAppointments(); // Reload appointments after update
+        await LoadMechanics(); // Reload appointments after update
+        isBusy = false;
         snackBar.Add("Appointment approved and mechanic assigned successfully!", Severity.Success);
     }
 

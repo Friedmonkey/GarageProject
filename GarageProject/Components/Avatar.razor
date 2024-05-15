@@ -3,6 +3,7 @@
 @inject RemoteService remoteService;
 @inject CommunicationService commService;
 @inject IDialogService dialogService;
+@inject AuthenticationStateProvider authProvider;
 
 @using MudExtensions;
 @using MudExtensions.Enums;
@@ -41,6 +42,11 @@
                         <MudLink Color="Color.Default">View profile picture</MudLink> 
                     </MudMenuItem>
                 }
+                #if DEBUG
+                <MudMenuItem OnClick="() => LoginToAccount(Account)">
+                    <MudLink Color="Color.Error" Href=@($"#")>Login into account</MudLink> 
+                </MudMenuItem>
+                #endif
             }
         </ChildContent>
     </MudMenu>
@@ -69,6 +75,20 @@
         var dialog = dialogService.Show<PictureViewDialog>("Picture", parameters);
 
         var result = await dialog.Result;
+    }
+    public async Task LoginToAccount(UserAccount userAccount)
+    {
+        var authStateProvider = (AuthStateProvider)authProvider;
+        await authStateProvider.UpdateAuthenticationState(new UserSession
+            {
+                Username = userAccount.Username,
+                Role = userAccount.Role,
+                IdStr = userAccount.ID.ToString()
+            });
+        await protectedSessionStorage.SetAsync("user", (UserAccount)userAccount);
+
+        //reload to login the user
+        navManager.NavigateTo("/", true);
     }
 
     public Color userColor => UsernameToColor(Account?.Username);
