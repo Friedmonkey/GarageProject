@@ -31,6 +31,7 @@
     private bool loaded;
     private DateTime? PlannedDate = null;
     private List<DateTime> ExistingAppointments = new List<DateTime>();
+    private int mechanicCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -45,6 +46,7 @@
                 Profile = (await userRepository.GetUsersByFilter(id: (int)userId)).FirstOrDefault();
                 if (Profile != null)
                 {
+                    mechanicCount = (await userRepository.GetUsersByFilter(role: UserAccount.Mechanic)).Count();
                     await LoadAppointment();
                     loaded = true;
                     StateHasChanged();
@@ -55,6 +57,9 @@
     }
     private async Task LoadAppointment()
     {
+        PlannedDate = null;
+
+
         CurrentAppointent = new Appointment()
         {
             AppointmentCreator = Profile,
@@ -81,6 +86,7 @@
         if (result == "success")
         {
             snackBar.Add("Your appointment has been requested, youll be notified via email on any updates!", Severity.Success);
+            await LoadAppointment();
         }
         else
         {
@@ -91,6 +97,13 @@
     private bool IsDateDisabled(DateTime dateTime)
     {
         if (dateTime < DateTime.Now) return true;
-        return !ExistingAppointments.TrueForAll(d => d < dateTime || d > dateTime.AddHours(1));
+        //return !ExistingAppointments.TrueForAll(d => d < dateTime || d > dateTime.AddHours(1));
+
+        int existingAppointmentsCount = ExistingAppointments.Count(d => d == dateTime);
+
+        int appointmentsLeftOnDate = mechanicCount - existingAppointmentsCount;
+
+        // if there are no more appoints left on the date, it will be disabled
+        return appointmentsLeftOnDate <= 0;
     }
 }

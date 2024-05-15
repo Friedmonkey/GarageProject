@@ -65,13 +65,13 @@ namespace DatabaseLibrary.Database.Appointments
         #region Create 
         public async Task<string> CreateAppointment(Appointment Appointment)
         {
-            if (await _database.Appointments.FirstOrDefaultAsync(a => a.PlannedDate == Appointment.PlannedDate) == null)
-            {
-                _database.Appointments.Add(await Convert(Appointment));
-                _database.SaveChanges();
-                return "success";
-            }
-            else return "An appointment is already planned on this date";
+            //if (await _database.Appointments.FirstOrDefaultAsync(a => a.PlannedDate == Appointment.PlannedDate) == null)
+            //{
+            _database.Appointments.Add(await Convert(Appointment));
+            _database.SaveChanges();
+            return "success";
+            //}
+            //else return "An appointment is already planned on this date";
         }
         #endregion
         #region Read 

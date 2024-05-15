@@ -6,27 +6,51 @@
 @inject IUserRepository userRepository;
 @inject IAppointmentRepository appointmentRepository;
 @inject AuthenticationStateProvider authProvider;
+@inject ISnackbar snackBar;
+@inject IDialogService DialogService;
 
-@foreach (var CurrentAppointent in Appointments)
-{
-    <MudCard>
-        <MudCardHeader>
-            <MudText>Appointment</MudText>
-        </MudCardHeader>
-        <MudCardContent>
-            <MudText>@CurrentAppointent.PlannedDate.ToLongTimeString()</MudText>
-    
-            <MudTextField ReadOnly="true" Lines="2" AutoGrow="true" Value="CurrentAppointent.Description" Label="Enlighten the problem you are having" />
-        </MudCardContent>
-    </MudCard>
-}
+<MudExtensions.MudLoading Loading="!loaded" Text="Fetching...">
+    @if (Appointments.Count() == 0)
+    {
+        <MudText Typo="Typo.h2">No appointments yet!</MudText>
+    }
+    <div class="d-flex flex-row gap-2">
+        @foreach (var appointment in Appointments)
+        {
+            <MudCard Elevation="3">
+                <MudCardHeader>
+                    <MudText>Appointment for @appointment.AppointmentCreator.FullName</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>@appointment.PlannedDate.ToLongDateString()</MudText>
+                    <MudTextField ReadOnly="true" Lines="2" AutoGrow="true" Value="@appointment.Description" Label="Description" />
+                    <MudSelect T="UserAccount" Label="Assign Mechanic" @bind-Value="appointment.MechanicAssigned">
+                        <MudSelectItem Value="(UserAccount?)null">None</MudSelectItem>
+                        @foreach (var mechanic in Mechanics)
+                        {
+                            <MudSelectItem Value="@mechanic">@mechanic.FullName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudCardContent>
+                <MudCardActions>
+                    <div class="d-flex gap-1">
+                        <MudButton Disabled="@isBusy" Variant="Variant.Filled" Color="Color.Success" OnClick="@(() => ApproveAppointment(appointment))">Approve</MudButton>
+                        <MudButton Disabled="@isBusy" Variant="Variant.Filled" Color="Color.Warning" OnClick="@(() => RejectAppointment(appointment))">Reject</MudButton>
+                        <MudButton Disabled="@isBusy" Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => DeleteAppointment(appointment))">Delete</MudButton>
+                    </div>
+                </MudCardActions>
+            </MudCard>
+        }
+    </div>
+</MudExtensions.MudLoading>    
 
 @code {
     private List<Appointment> Appointments = new List<Appointment>();
-
+    private List<UserAccount> Mechanics = new List<UserAccount>();
 
     public UserAccount Profile { get; set; } = null;
     private bool loaded;
+    private bool isBusy = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -42,17 +66,68 @@
                 if (Profile != null && (Profile.Role is UserAccount.Admin or UserAccount.Secretary))
                 {
                     await LoadAppointments();
+                    await LoadMechanics();
                     loaded = true;
                     StateHasChanged();
                 }
             }
         }
-
     }
 
     private async Task LoadAppointments()
     {
-        Appointments = (await appointmentRepository.GetAppointmentsByFilter(status:Status.Requested)).OrderBy(a => a.CreationDate).ToList();
+        Appointments = (await appointmentRepository.GetAppointmentsByFilter(status: Status.Requested)).OrderBy(a => a.CreationDate).ToList();
     }
 
+    private async Task LoadMechanics()
+    {
+        Mechanics = await userRepository.GetUsersByFilter(role: UserAccount.Mechanic);
+    }
+
+    private async Task ApproveAppointment(Appointment appointment)
+    {
+        if (appointment.MechanicAssigned == null)
+        {
+            snackBar.Add("Please assign a mechanic to the appointment before approving!", Severity.Warning);
+            return;
+        }
+
+        // Here you would update the appointment in the database with the assigned mechanic
+        await appointmentRepository.UpdateAppointment(appointment.ID, status:Status.Aproved, mechanicId: appointment.MechanicAssigned.ID);
+        await LoadAppointments(); // Reload appointments after update
+        snackBar.Add("Appointment approved and mechanic assigned successfully!", Severity.Success);
+    }
+
+
+    private async Task RejectAppointment(Appointment appointment)
+    {
+        // Here you would reject the appointment
+        // You can mark the appointment as rejected in the database or delete it, depending on your requirements
+        // For simplicity, let's mark it as rejected in this example
+        appointment.Status = Status.Rejected;
+        isBusy = true;
+        await appointmentRepository.UpdateAppointment(appointment.ID, status: Status.Rejected);
+        await LoadAppointments(); // Reload appointments after update
+        isBusy = false;
+        snackBar.Add("Appointment rejected successfully!", Severity.Success);
+    }
+
+
+    private async Task DeleteAppointment(Appointment appointment)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Delete appointment",
+            "Are you sure you want to delete this appointment, it will be GONE FOREVER!",
+            yesText: "Delete appointment!", cancelText: "Cancel");
+
+        if (result != null && result == true)
+        {
+            isBusy = true;
+            //deletes the tournament
+            await appointmentRepository.DeleteAppointment(appointment.ID);
+            await LoadAppointments(); // Reload appointments after update
+            isBusy = false;
+            snackBar.Add("Appointment has been deleted.", Severity.Warning);
+        }
+    }
 }
