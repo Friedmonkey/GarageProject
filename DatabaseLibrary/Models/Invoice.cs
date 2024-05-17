@@ -16,6 +16,7 @@ public class Invoice
     public float AppointmentCost { get; set; }
     public string Brand { get; set; }
     public List<Material> Materials { get; set; }
+    public List<ServiceAction> ServiceActions { get; set; }
 
     [NotMapped]
     public float MaterialCost => (Materials == null) ? 0 : Materials.Sum(m => m.TotalCost);

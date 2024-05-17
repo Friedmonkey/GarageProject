@@ -28,8 +28,10 @@ public class DatabaseContext : DbContext
 
     public DbSet<InvoiceDTO> Invoices { get; set; }
     public DbSet<InvoiceMaterialCouple> InvoiceMaterialCouples { get; set; }
+    public DbSet<InvoiceServiceActionCouple> InvoiceServiceActionCouples { get; set; }
 
     public DbSet<Material> Materials { get; set; }
+    public DbSet<ServiceAction> ServiceActions { get; set; }
     public DbSet<ReviewDTO> Reviews { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

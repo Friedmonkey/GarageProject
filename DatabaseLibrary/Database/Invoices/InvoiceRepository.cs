@@ -27,6 +27,7 @@ public class InvoiceRepository : IInvoiceRepository
 
 
         List<Material> materials = await GetMaterialsByInvoiceId(entity.ID);
+        List<ServiceAction> serviceActions = await GetServiceActionsByInvoiceId(entity.ID);
 
         return new Invoice()
         {
@@ -36,6 +37,7 @@ public class InvoiceRepository : IInvoiceRepository
             Brand = entity.Brand,
             Customer = customer,
             Materials = materials,
+            ServiceActions = serviceActions,
             ServiceCost = entity.ServiceCost,
         };
     }
@@ -121,6 +123,26 @@ public class InvoiceRepository : IInvoiceRepository
         }
 
         return materials;
+    }
+    public async Task<List<ServiceAction>> GetServiceActionsByInvoiceId(int invoiceID)
+    {
+        List<ServiceAction> serviceActions = new List<ServiceAction>();
+
+        //get all tournament-account couple from the tournament id
+        var couples = _database.InvoiceServiceActionCouples.Where(ta => ta.InvoiceId == invoiceID);
+
+        if (couples != null)
+        {
+            foreach (var couple in couples)
+            {
+                //get the accociated useraccount from the couple we just got
+                var serviceAction = _database.ServiceActions.FirstOrDefault(a => a.ID == couple.ServiceActionId);
+                if (serviceAction != null)
+                    serviceActions.Add(serviceAction);
+            }
+        }
+
+        return serviceActions;
     }
     public async Task<InvoiceMaterialCouple?> GetInvoiceMaterialCouple(int invoiceId, int materialId)
     {

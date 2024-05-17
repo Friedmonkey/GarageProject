@@ -21,6 +21,7 @@ public interface IInvoiceRepository
         int? customerId = null
     );
     Task<List<Material>> GetMaterialsByInvoiceId(int invoiceID);
+    Task<List<ServiceAction>> GetServiceActionsByInvoiceId(int invoiceID);
     Task<InvoiceMaterialCouple?> GetInvoiceMaterialCouple(int invoiceId, int materialId);
 
     Task UpdateInvoice(int id,
