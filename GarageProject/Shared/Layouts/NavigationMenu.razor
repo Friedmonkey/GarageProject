@@ -8,6 +8,11 @@
         {
             <MudNavLink Href="import" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.ImportContacts"><p class="menu-wrapper">Import</p></MudNavLink>
         }
+        @if (User.Role is UserAccount.Admin or UserAccount.Secretary or UserAccount.Mechanic)
+        {
+            <MudNavLink Href="materials" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.BusinessCenter"><p class="menu-wrapper">Material manager</p></MudNavLink>
+            <MudNavLink Href="serviceActions" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.AddBusiness"><p class="menu-wrapper">Service action manager</p></MudNavLink>
+        }
         @if (User.Role is UserAccount.Admin or UserAccount.User)
         {
             <MudNavLink Href="RequestAppointment" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.CalendarToday"><p class="menu-wrapper">Create Appointment</p></MudNavLink>
