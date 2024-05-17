@@ -1,0 +1,46 @@
+﻿@page "/serviceActions"
+@using DatabaseLibrary.Database.ServiceActions;
+@inject IServiceActionRepository serviceActionRepository;
+
+<h3>ServiceActionManager</h3>
+<h5>Where you can configure all serviceActions</h5>
+
+<CreationTable 
+    @ref="creationTableRefference"
+    TItem="ServiceAction"
+    Title="ServiceActions"
+    Items="ServiceActions"
+    CreateItem="CreateItem"
+    UpdateItem="UpdateItem"
+    DeleteItem="DeleteItem" />
+
+@code {
+    public List<ServiceAction> ServiceActions = new List<ServiceAction>();
+
+    private CreationTable<ServiceAction> creationTableRefference;
+
+    private bool isLoading
+    {
+        get
+        {
+            if (creationTableRefference != null)
+                return creationTableRefference.isLoading;
+            return true;
+        }
+        set
+        {
+            if (creationTableRefference != null)
+                creationTableRefference.isLoading = value;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        ServiceActions = await serviceActionRepository.GetServiceActionsByFilter();
+        isLoading = false;
+    }
+    private async Task CreateItem(ServiceAction serviceAction) => await serviceActionRepository.CreateServiceAction(serviceAction);
+    private async Task UpdateItem(int id, ServiceAction serviceAction) => await serviceActionRepository.UpdateServiceAction(id, serviceAction);
+    private async Task DeleteItem(int id) => await serviceActionRepository.DeleteServiceAction(id);
+}

@@ -1,0 +1,282 @@
+﻿@typeparam TItem where TItem : ICreationTableCompatible, new()
+@inject ISnackbar snackBar;
+@inject IDialogService DialogService;
+
+<style>
+    .ColorCard {
+        background-color: var(--mud-palette-drawer-background) !important;
+    }
+</style>
+<MudCard Class="ColorCard">
+    <MudCardHeader>
+        <div class="d-flex flex-column w-100">
+            <div class="d-flex align-center ">
+                <MudText Class="ml-1" Typo="Typo.h5">
+                    <b>@Title (@Items.Count(s => FilterFunc(s)))</b>
+                </MudText>
+                <div class="d-flex ml-auto ">
+                    <MudTooltip Text="Add item" Class="d-flex ml-auto mr-1">
+                        <MudIconButton Icon="@MudBlazor.Icons.Material.Filled.Add" Color="Color.Info" OnClick="Add" />
+                    </MudTooltip>
+                </div>
+            </div>
+
+
+            <MudTextField @bind-Value="searchString" Immediate="true" Class="d-block" Placeholder="Search" T="string" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@MudBlazor.Icons.Material.Filled.Search"></MudTextField>
+
+
+        </div>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudTable Class="ColorCard"
+                  Virtualize="true"
+                  FixedHeader="true"
+                  Height="25rem" Elevation="0"
+                  Items="Items"
+                  T="TItem"
+                  RowsPerPage="100"
+                  OnRowClick="((e) => RowClicked(e))"
+                  Filter="new Func<TItem, bool>(FilterFunc)"
+                  Loading="@isLoading">
+            <ColGroup>
+                <col width="46%"/>
+                <col width="46%"/>
+                <col width="8%"/>
+            </ColGroup>
+            <HeaderContent>
+                <MudTh Class="ColorCard">Name</MudTh>
+                <MudTh Class="ColorCard">Cost</MudTh>
+                <MudTh Class="ColorCard">Options</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <MudText>
+                        @context.Name
+                    </MudText>
+                </MudTd>
+                <MudTd>
+                    <MudText>
+                        @context.Cost
+                    </MudText>
+                </MudTd>
+                <MudTd>
+                    <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopLeft" ActivationEvent="@MouseEvent.LeftClick">
+                        <ActivatorContent>
+                            <div class="d-flex flex-row pa-1">
+                                @{
+                                    for (int i = 0; i < 3; i++)
+                                    {
+                                        <MudIcon Size="Size.Small" Icon="@MudBlazor.Icons.Material.Filled.Circle" />
+                                    }
+                                }
+                            </div>
+                        </ActivatorContent>
+                        <ChildContent>
+                                <MudMenuItem OnClick="(e) => Edit(context)" Icon="@MudBlazor.Icons.Material.Rounded.Edit" IconColor="@Color.Secondary">
+                                    <MudText Color="@Color.Secondary">Edit</MudText>
+                                </MudMenuItem>
+                                <MudMenuItem OnClick="(e) => Delete(context)" Icon="@MudBlazor.Icons.Material.Rounded.DeleteForever" IconColor="@Color.Error">
+                                    <MudText Color="@Color.Error">Delete</MudText>
+                                </MudMenuItem>
+                            </ChildContent>
+                        </MudMenu>
+                    </MudTd>
+                </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </MudCardContent>
+    <MudCardActions>
+@*         <MudSpacer />
+        <MudButton Disabled="isLoading" Color="Color.Secondary" OnClick="SaveJson">Save</MudButton> *@
+    </MudCardActions>
+    </MudCard>
+@code {
+
+    [Parameter]
+    public List<TItem> Items { get; set; } = new List<TItem>();
+    List<TItem> ignoreItems { get; set; } = new List<TItem>();
+
+    [Parameter]
+    public string Title { get; set; } = "Filter";
+
+    private string searchString = "";
+    public bool isLoading = true;
+
+    [Parameter]
+    public Func<TItem, Task> CreateItem { get; set; }
+
+    [Parameter]
+    public Func<int, TItem, Task> UpdateItem { get; set; }
+
+    [Parameter]
+    public Func<int, Task> DeleteItem { get; set; }
+
+
+    public void RowClicked(TableRowClickEventArgs<TItem> Row)
+    {
+        TItem source = Row.Item;
+
+        if (Row.MouseEventArgs.CtrlKey)
+            _ = Edit(source);
+    }
+
+    #region dialogs
+    private async Task Delete(TItem source)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+        "Warning",
+        "Deleting can not be undone!",
+        yesText: "Delete item!", cancelText: "Cancel");
+
+        if (result != null && result == true)
+        {
+            // //deletes the item
+            await DeleteItem(source.ID);
+            Items.Remove(source);
+            snackBar.Add("Item has been deleted.", Severity.Warning);
+            StateHasChanged();
+        }
+    }
+
+    private async Task Edit(TItem source)
+    {
+        TItem backup = (TItem)source.Copy();
+        var parameters = new DialogParameters();
+
+        parameters.Add("Text", "Do you want to save this item?");
+        parameters.Add("SubmitText", "Save edit");
+        parameters.Add("Value", backup);
+
+        // parameters.Add("onSubmit", new Func<Source, bool>((newSource) =>
+        // {
+        //     if (newSource.isFilled())
+        //     {
+        //         char last = newSource.setSettingEndpoint.ToCharArray().Last();
+        //         if (last == '/')
+        //         {
+        //             MessageService.AddSnackbar(Translation.Languages[LanguageService.Language].KeyTranslation["EndpointEndedInWrongChar"], Severity.Error);
+        //             LogService.AddLog("EndpointEndedInWrongChar", LogType.error);
+        //             return false;
+        //         }
+        //         else
+        //         {
+        //             //if the alias doest exist yet or if the alis is the same as we started but NOT
+        //             if (!(Sources.Count(s => s.Alias == newSource.Alias) == 0 || (source.Alias == newSource.Alias)))
+        //             {
+        //                 MessageService.AddSnackbar(Translation.Languages[LanguageService.Language].KeyTranslation["SourceAliasExists"], Severity.Error, true);
+        //                 LogService.AddLog("SourceAliasExists", LogType.error);
+        //                 return false;
+        //             }
+        //             else
+        //             {
+        //                 MessageService.AddSnackbar(Translation.Languages[LanguageService.Language].KeyTranslation["SourceChangedSaveToApply"], Severity.Normal, false, true);
+        //                 LogService.AddLog("SourceChangedLog", LogType.source, source, newSource);
+        //                 return true;
+        //             }
+        //         }
+        //     }
+        //     else
+        //     {
+        //         MessageService.AddSnackbar(Translation.Languages[LanguageService.Language].KeyTranslation["SourceNotFilled"], Severity.Error);
+        //         LogService.AddLog("SourceNotFilled", LogType.error);
+        //         return false;
+        //     }
+        // }));
+
+        parameters.Add("SubmitColor", Color.Tertiary);
+
+
+        DialogOptions bigDialog = new DialogOptions()
+            {
+                CloseButton = true,
+                DisableBackdropClick = true,
+                CloseOnEscapeKey = true,
+            };
+
+        var dialog = DialogService.Show<ItemDialog<TItem>>("Edit item", parameters, bigDialog);
+        var result = await dialog.Result;
+
+        if (result != null && result.Data != null && (bool)result.Data == true)
+        {
+            source.Fill(backup);
+            await UpdateItem(source.ID, source);
+        }
+        StateHasChanged();
+
+    }
+
+    private async Task Add()
+    {
+        //a suggestion for the new option
+        TItem defaultSuggestionOption = new TItem();
+
+        var parameters = new DialogParameters();
+        parameters.Add("Text", "Add new item?");
+
+        parameters.Add("SubmitText", "Add item");
+        parameters.Add("SubmitColor", Color.Info);
+
+        parameters.Add("Value", defaultSuggestionOption); //set all the value to this default suggestion
+
+        DialogOptions bigDialog = new DialogOptions()
+            {
+                CloseButton = true,
+                DisableBackdropClick = true,
+                CloseOnEscapeKey = true,
+            };
+
+        var dialog = DialogService.Show<ItemDialog<TItem>>("Add item?", parameters, bigDialog);
+        var result = await dialog.Result;
+
+        if (result != null && result.Data != null && (bool)result.Data == true)
+        {
+            await CreateItem(defaultSuggestionOption);
+            Items.Add(defaultSuggestionOption);
+        }
+        StateHasChanged();
+    }
+
+    #endregion
+
+    public async void SaveJson()
+    {
+        // if (Sources != null)
+        // {
+        //     isLoading = true;
+        //     SettingsService.ignoreSources = ignoreSources;
+        //     if (SettingsService.SaveSources(Sources))
+        //     {
+        //         await LogService.SaveLogSession();
+        //         MessageService.AddSnackbar(Translation.Languages[LanguageService.Language].KeyTranslation["SourcesSavedAndLogged"], Severity.Success, false, true);
+        //     }
+        //     else
+        //     {
+        //         MessageService.AddSnackbar(Translation.Languages[LanguageService.Language].KeyTranslation["ErrorSavingNotingSaved"], Severity.Error, false, true);
+        //         LogService.AddLog("ErrorSavingNotingSaved", LogType.error);
+
+        //     }
+        //     isLoading = false;
+        //     StateHasChanged();
+        // }
+        // else
+        // {
+        //     MessageService.AddSnackbar(Translation.Languages[LanguageService.Language].KeyTranslation["SourcesEmptyNotSaved"], Severity.Warning, false, true);
+        //     LogService.AddLog("SourcesEmptyNotSaved", LogType.error);
+        // }
+
+    }
+    #region filtering
+
+    private bool FilterFunc(TItem source)
+    {
+        //if search bar is empty show all items
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true; //we need to check filters
+
+        return source.MatchesFilter(searchString);
+    }
+    #endregion
+
+}

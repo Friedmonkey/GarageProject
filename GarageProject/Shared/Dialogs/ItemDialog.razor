@@ -1,0 +1,58 @@
+﻿@typeparam TItem where TItem : ICreationTableCompatible, new()
+
+<MudDialog>
+    <DialogContent>
+        <MudText>@Text</MudText>
+
+        @if (Value is Material)
+        {
+            <MudTextField T="string" @bind-Value="(Value as Material).Name" Label="Name" />
+            <MudTextField T="float" @bind-Value="(Value as Material).SingleCost" Label="Single Cost" />
+            <MudTextField T="int" @bind-Value="(Value as Material).Amount" Label="Amount" />
+        }
+        else if (Value is ServiceAction)
+        {
+            <MudTextField T="string" @bind-Value="(Value as ServiceAction).Name" Label="Name" />
+            <MudTextField T="float" @bind-Value="(Value as ServiceAction).Price" Label="Price" />
+            <MudTextField T="string" @bind-Value="(Value as ServiceAction).Description" Label="Description" />
+        }
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" OnClick="Submit" Color="@SubmitColor">@SubmitText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code{
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; } = null;
+
+    [Parameter]
+    public string Text { get; set; } = "Title";
+
+    [Parameter]
+    public string SubmitText { get; set; } = "Submit";
+
+    [Parameter]
+    public Color SubmitColor { get; set; } = Color.Success;
+
+
+    [Parameter]
+    public TItem Value { get; set; } = new TItem();
+
+    void Submit()
+    {
+        bool formIsValid = true;
+
+        // if (onSubmit != null)
+        //     formIsValid = onSubmit.Invoke(Value);
+
+
+        if (!formIsValid)
+            return;
+
+        MudDialog?.Close(DialogResult.Ok(formIsValid));
+    }
+    void Cancel() => MudDialog?.Cancel();
+}

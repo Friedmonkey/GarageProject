@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DatabaseLibrary.Database.Actions;
+namespace DatabaseLibrary.Database.ServiceActions;
 
 public interface IServiceActionRepository
 {
@@ -18,6 +18,7 @@ public interface IServiceActionRepository
     Task<List<ServiceAction>> GetServiceActionsBySearchFilter(
         string? name = null
     );
+    Task UpdateServiceAction(int id, ServiceAction serviceAction);
     Task UpdateServiceAction(int id,
         string? name = null,
         float? price = null,

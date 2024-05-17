@@ -1,0 +1,53 @@
+﻿@page "/materials"
+@using DatabaseLibrary.Database.Materials;
+@inject IMaterialRepository materialRepository;
+
+<h3>MaterialManager</h3>
+<h5>Where you can configure all materials</h5>
+
+@if (Materials != null)
+{
+    <CreationTable 
+        @ref="creationTableRefference"
+        TItem="Material"
+        Title="Materials"
+        Items="Materials"
+        CreateItem="CreateItem" 
+        UpdateItem="UpdateItem" 
+        DeleteItem="DeleteItem" 
+        />
+}
+
+@code {
+    public List<Material> Materials = null;
+
+
+    private CreationTable<Material> creationTableRefference;
+
+    private bool isLoading
+    {
+        get
+        {
+            if (creationTableRefference != null)
+                return creationTableRefference.isLoading;
+            return true;
+        }
+        set
+        {
+            if (creationTableRefference != null)
+                creationTableRefference.isLoading = value;
+        }
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        Materials = await materialRepository.GetMaterialsByFilter();
+        StateHasChanged();
+        isLoading = false;
+    }
+    private async Task CreateItem(Material material) => await materialRepository.CreateMaterial(material);
+    private async Task UpdateItem(int id, Material material)  => await materialRepository.UpdateMaterial(id, material);
+    private async Task DeleteItem(int id)  => await materialRepository.DeleteMaterial(id);
+}

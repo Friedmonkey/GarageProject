@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Crypto;
 using System.Security.Principal;
 
-namespace DatabaseLibrary.Database.Actions;
+namespace DatabaseLibrary.Database.ServiceActions;
 
 public class ServiceActionRepository : IServiceActionRepository
 {
@@ -40,6 +40,10 @@ public class ServiceActionRepository : IServiceActionRepository
     }
     #endregion
     #region Update 
+    public async Task UpdateServiceAction(int id, ServiceAction sa)
+    {
+        await UpdateServiceAction(id, sa.Name, sa.Price, sa.Description);
+    }
     public async Task UpdateServiceAction(int id, string? name = null, float? price = null, string? description = null)
     {
         var result = (await _database.ServiceActions.FirstOrDefaultAsync(a => a.ID == id));

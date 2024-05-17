@@ -16,6 +16,7 @@ using DatabaseLibrary.Database.Appointments;
 using DatabaseLibrary.Database.Invoices;
 using DatabaseLibrary.Database.Users;
 using DatabaseLibrary.Database.Materials;
+using DatabaseLibrary.Database.ServiceActions;
 using DatabaseLibrary.Database.Reviews;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -67,6 +68,7 @@ builder.Services.AddScoped<DatabaseContext>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
+builder.Services.AddScoped<IServiceActionRepository, ServiceActionRepository>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 

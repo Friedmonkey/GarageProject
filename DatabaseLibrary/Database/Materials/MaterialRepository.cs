@@ -41,6 +41,10 @@ public class MaterialRepository : IMaterialRepository
     }
     #endregion
     #region Update 
+    public async Task UpdateMaterial(int id, Material m)
+    {
+        await UpdateMaterial(id, m.Name, m.SingleCost, m.Amount);
+    }
     public async Task UpdateMaterial(int id, string? name = null, float? singleCost = null, int? amount = null)
     {
         var result = (await _database.Materials.FirstOrDefaultAsync(a => a.ID == id));

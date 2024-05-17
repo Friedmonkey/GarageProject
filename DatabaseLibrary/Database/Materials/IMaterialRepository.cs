@@ -19,6 +19,7 @@ public interface IMaterialRepository
     Task<List<Material>> GetMaterialsBySearchFilter(
         string? name = null
     );
+    Task UpdateMaterial(int id, Material material);
     Task UpdateMaterial(int id,
         string? name = null,
         float? singleCost = null,
