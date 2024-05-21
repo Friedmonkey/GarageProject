@@ -12,27 +12,30 @@ namespace DatabaseLibrary.Database.Users;
 //Delete
 public class UserRepository : IUserRepository
 {
-    private readonly DatabaseContext _database;
-
-    public UserRepository(DatabaseContext db)
+    //private readonly DatabaseContext _database;
+    private readonly IDbContextFactory<DatabaseContext> _databaseFactory;
+    public UserRepository(IDbContextFactory<DatabaseContext> dbFactory)
     {
-        _database = db;
+        _databaseFactory = dbFactory;
     }
 
     #region Create
     public async Task<string> Register(UserAccount account)
     {
-        if (await _database.Users.FirstOrDefaultAsync(a => a.Username.ToLower() == account.Username.ToLower() || a.Email.ToLower() == account.Email.ToLower()) == null)
+        using (var _database = _databaseFactory.CreateDbContext())
         {
-            _database.Users.Add(account);
-            _database.SaveChanges();
-            return "success";
+            if (await _database.Users.FirstOrDefaultAsync(a => a.Username.ToLower() == account.Username.ToLower() || a.Email.ToLower() == account.Email.ToLower()) == null)
+            {
+                _database.Users.Add(account);
+                _database.SaveChanges();
+                return "success";
+            }
+            else if (await _database.Users.FirstOrDefaultAsync(a => a.Username.ToLower() == account.Username.ToLower()) != null)
+                return $"Username \"{account.Username}\" is already taken.";
+            else if (await _database.Users.FirstOrDefaultAsync(a => a.Email.ToLower() == account.Email.ToLower()) != null)
+                return $"Email \"{account.Username}\" is already in use.";
+            else return "unknown error";
         }
-        else if (await _database.Users.FirstOrDefaultAsync(a => a.Username.ToLower() == account.Username.ToLower()) != null)
-            return $"Username \"{account.Username}\" is already taken.";
-        else if (await _database.Users.FirstOrDefaultAsync(a => a.Email.ToLower() == account.Email.ToLower()) != null)
-            return $"Email \"{account.Username}\" is already in use.";
-        else return "unknown error";
     }
     #endregion
 
@@ -46,14 +49,17 @@ public class UserRepository : IUserRepository
         bool? verified = null
         )
     {
-        return (await _database.Users.Where(a =>
-            (id == null || a.ID == id) &&
-            (username == null || a.Username.ToLower() == username.ToLower()) &&
-            (fullName == null || a.FullName.Contains(fullName)) &&
-            (role == null || a.Role == role) &&
-            (email == null || a.Email.ToLower() == email.ToLower()) &&
-            (verified == null || a.Verified == verified)
-        ).ToListAsync());
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            return (await _database.Users.Where(a =>
+                (id == null || a.ID == id) &&
+                (username == null || a.Username.ToLower() == username.ToLower()) &&
+                (fullName == null || a.FullName.Contains(fullName)) &&
+                (role == null || a.Role == role) &&
+                (email == null || a.Email.ToLower() == email.ToLower()) &&
+                (verified == null || a.Verified == verified)
+            ).ToListAsync());
+        }
     }
     public async Task<List<UserAccount>> GetUsersBySearchFilter(
         string? username = null, 
@@ -64,17 +70,20 @@ public class UserRepository : IUserRepository
         bool? verified = null
         )
     {
-        return (await _database.Users.Where(a =>
-            (
-                (username == null || a.Username.ToLower().Contains(username.ToLower())) ||
-                (fullName == null || a.FullName.ToLower().Contains(fullName.ToLower())) ||
-                (role == null || a.Role.ToLower().Contains(role.ToLower())) ||
-                (bio == null || a.Bio.ToLower().Contains(bio.ToLower())) ||
-                (email == null || a.Email.ToLower().Contains(email.ToLower()))
-            )
-            &&
-            (verified == null || a.Verified == (bool)verified)
-        ).ToListAsync());
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            return (await _database.Users.Where(a =>
+                (
+                    (username == null || a.Username.ToLower().Contains(username.ToLower())) ||
+                    (fullName == null || a.FullName.ToLower().Contains(fullName.ToLower())) ||
+                    (role == null || a.Role.ToLower().Contains(role.ToLower())) ||
+                    (bio == null || a.Bio.ToLower().Contains(bio.ToLower())) ||
+                    (email == null || a.Email.ToLower().Contains(email.ToLower()))
+                )
+                &&
+                (verified == null || a.Verified == (bool)verified)
+            ).ToListAsync());
+        }
     }
     #endregion
 
@@ -97,61 +106,66 @@ public class UserRepository : IUserRepository
         DateTime? verifyRequest = null
         )
     {
-
-        var result = (await _database.Users.FirstOrDefaultAsync(a => a.ID == id));
-        if (result != null)
+        using (var _database = _databaseFactory.CreateDbContext())
         {
-            if (username != null)
-                result.Username = username;
-            if (fullName != null)
-                result.FullName = fullName;
-            if (role != null)
-                result.Role = role;
-            if (email != null)
-                result.Email = email;
-            if (banned != null)
-                result.Banned = (bool)banned;
+            var result = (await _database.Users.FirstOrDefaultAsync(a => a.ID == id));
+            if (result != null)
+            {
+                if (username != null)
+                    result.Username = username;
+                if (fullName != null)
+                    result.FullName = fullName;
+                if (role != null)
+                    result.Role = role;
+                if (email != null)
+                    result.Email = email;
+                if (banned != null)
+                    result.Banned = (bool)banned;
 
-            if (address != null)
-                result.Addess = address;
-            if (phone != null)
-                result.PhoneNumber = phone;
+                if (address != null)
+                    result.Addess = address;
+                if (phone != null)
+                    result.PhoneNumber = phone;
 
-            if (password != null)
-                result.Password = password;
+                if (password != null)
+                    result.Password = password;
 
-            if (passwordResetGuid != null)
-                result.PasswordResetGuid = (Guid)passwordResetGuid;
-            if (passwordResetRequest != null)
-                result.PasswordResetRequest = (DateTime)passwordResetRequest;
+                if (passwordResetGuid != null)
+                    result.PasswordResetGuid = (Guid)passwordResetGuid;
+                if (passwordResetRequest != null)
+                    result.PasswordResetRequest = (DateTime)passwordResetRequest;
 
-            if (verified != null)
-                result.Verified = (bool)verified;
-            if (verifiedGuid != null)
-                result.VerifyGuid = (Guid)verifiedGuid;
-            if (verifyRequest != null)
-                result.VerifyRequest = (DateTime)verifyRequest;
+                if (verified != null)
+                    result.Verified = (bool)verified;
+                if (verifiedGuid != null)
+                    result.VerifyGuid = (Guid)verifiedGuid;
+                if (verifyRequest != null)
+                    result.VerifyRequest = (DateTime)verifyRequest;
 
-            _database.SaveChanges();
+                _database.SaveChanges();
+            }
         }
     }
     public async Task UpdateUserByProperty(int id, string property, string value)
     {
-        var result = await _database.Users.FirstOrDefaultAsync(a => a.ID == id);
-        if (result != null)
+        using (var _database = _databaseFactory.CreateDbContext())
         {
-            var propertyInfo = result.GetType().GetProperty(property, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            var result = await _database.Users.FirstOrDefaultAsync(a => a.ID == id);
+            if (result != null)
+            {
+                var propertyInfo = result.GetType().GetProperty(property, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
-            if (propertyInfo != null && propertyInfo.CanWrite)
-            {
-                var convertedValue = Convert.ChangeType(value, propertyInfo.PropertyType);
-                propertyInfo.SetValue(result, convertedValue);
-                _database.SaveChanges();
-            }
-            else
-            {
-                // Handle property not found or not writeable
-                // For instance: throw new Exception("Property not found or not writeable");
+                if (propertyInfo != null && propertyInfo.CanWrite)
+                {
+                    var convertedValue = Convert.ChangeType(value, propertyInfo.PropertyType);
+                    propertyInfo.SetValue(result, convertedValue);
+                    _database.SaveChanges();
+                }
+                else
+                {
+                    // Handle property not found or not writeable
+                    // For instance: throw new Exception("Property not found or not writeable");
+                }
             }
         }
     }
@@ -160,9 +174,12 @@ public class UserRepository : IUserRepository
     #region Delete
     public async Task DeleteUser(int id)
     {
-        var result = (await _database.Users.FirstOrDefaultAsync(a => a.ID == id));
-        _database.Users.Remove(result);
-        _database.SaveChanges();
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            var result = (await _database.Users.FirstOrDefaultAsync(a => a.ID == id));
+            _database.Users.Remove(result);
+            _database.SaveChanges();
+        }
     }
     #endregion
 }

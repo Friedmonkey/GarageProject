@@ -21,7 +21,10 @@ public class Invoice
     [NotMapped]
     public float MaterialCost => (Materials == null) ? 0 : Materials.Sum(m => m.TotalCost);
 
+    [NotMapped]
+    public float ServiceActionCost => (ServiceActions == null) ? 0 : ServiceActions.Sum(m => m.Price);
+
 
     [NotMapped]
-    public float TotalCost => MaterialCost + ServiceCost + AppointmentCost;
+    public float TotalCost => MaterialCost + ServiceActionCost + ServiceCost + AppointmentCost;
 }

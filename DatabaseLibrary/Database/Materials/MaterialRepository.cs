@@ -8,36 +8,45 @@ namespace DatabaseLibrary.Database.Materials;
 
 public class MaterialRepository : IMaterialRepository
 {
-    private readonly DatabaseContext _database;
-
-    public MaterialRepository(DatabaseContext db)
+    //private readonly DatabaseContext _database;
+    private readonly IDbContextFactory<DatabaseContext> _databaseFactory;
+    public MaterialRepository(IDbContextFactory<DatabaseContext> dbFactory)
     {
-        _database = db;
+        _databaseFactory = dbFactory;
     }
 
     #region Create 
     public async Task<string> CreateMaterial(Material material)
     {
-        _database.Materials.Add(material);
-        _database.SaveChanges();
-        return "success";
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            _database.Materials.Add(material);
+            _database.SaveChanges();
+            return "success";
+        }
     }
     #endregion
     #region Read 
     public async Task<List<Material>> GetMaterialsByFilter(int? id = null, string? name = null, float? singleCost = null, int? amount = null)
     {
-        return (await _database.Materials.Where(a =>
-            (id == null || a.ID == id) &&
-            (name == null || a.Name.ToLower() == name.ToLower()) &&
-            (singleCost == null || a.SingleCost == singleCost) &&
-            (amount == null || a.Amount == amount)
-        ).ToListAsync());
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            return (await _database.Materials.Where(a =>
+                (id == null || a.ID == id) &&
+                (name == null || a.Name.ToLower() == name.ToLower()) &&
+                (singleCost == null || a.SingleCost == singleCost) &&
+                (amount == null || a.Amount == amount)
+            ).ToListAsync());
+        }
     }
     public async Task<List<Material>> GetMaterialsBySearchFilter(string? name = null)
     {
-        return (await _database.Materials.Where(a => 
-            (name == null || a.Name.ToLower().Contains(name.ToLower()))
-        ).ToListAsync());
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            return (await _database.Materials.Where(a =>
+                (name == null || a.Name.ToLower().Contains(name.ToLower()))
+            ).ToListAsync());
+        }
     }
     #endregion
     #region Update 
@@ -47,26 +56,32 @@ public class MaterialRepository : IMaterialRepository
     }
     public async Task UpdateMaterial(int id, string? name = null, float? singleCost = null, int? amount = null)
     {
-        var result = (await _database.Materials.FirstOrDefaultAsync(a => a.ID == id));
-        if (result != null)
+        using (var _database = _databaseFactory.CreateDbContext())
         {
-            if (name != null)
-                result.Name = name;
-            if (singleCost != null)
-                result.SingleCost = (float)singleCost;
-            if (amount != null)
-                result.Amount = (int)amount;
+            var result = (await _database.Materials.FirstOrDefaultAsync(a => a.ID == id));
+            if (result != null)
+            {
+                if (name != null)
+                    result.Name = name;
+                if (singleCost != null)
+                    result.SingleCost = (float)singleCost;
+                if (amount != null)
+                    result.Amount = (int)amount;
 
-            _database.SaveChanges();
+                _database.SaveChanges();
+            }
         }
     }
     #endregion
     #region Delete 
     public async Task DeleteMaterial(int id)
     {
-        var result = (await _database.Materials.FirstOrDefaultAsync(a => a.ID == id));
-        _database.Materials.Remove(result);
-        _database.SaveChanges();
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            var result = (await _database.Materials.FirstOrDefaultAsync(a => a.ID == id));
+            _database.Materials.Remove(result);
+            _database.SaveChanges();
+        }
     }
     #endregion
 }

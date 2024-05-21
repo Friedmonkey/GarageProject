@@ -64,7 +64,10 @@ builder.Services.AddHttpClient();
 //i changed this from singleton to scoped (i hope it wont crash in the future because of conflicts or whatever)
 
 
-builder.Services.AddScoped<DatabaseContext>();
+//builder.Services.AddScoped<DatabaseContext>();
+
+builder.Services.AddDbContextFactory<DatabaseContext>();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
