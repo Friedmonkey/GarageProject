@@ -33,7 +33,6 @@ namespace DatabaseLibrary.Database
                     Verified = true,
                     Role = UserAccount.Admin
                 };
-
                 // make a list of all default accounts
                 List<UserAccount> defaultAccounts = new List<UserAccount> { admin };
 

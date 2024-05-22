@@ -82,7 +82,24 @@ namespace DatabaseLibrary.Database.Appointments
         }
         #endregion
         #region Read 
-        public async Task<List<Appointment>> GetAppointmentsByFilter(int? id = null, int? creatorId = null, Status? status = null, int? mechanicId = null)
+        public async Task<List<DateTime>> GetAllAppointmentsDatesByFilter(int? id = null, int? creatorId = null, Status? status = null, DateTime? afterdDate = null, DateTime? beforeDate = null, int? mechanicId = null)
+        {
+            using (var _database = _databaseFactory.CreateDbContext())
+            {
+                var querry = (await _database.Appointments.Where(a =>
+                    (id == null || a.ID == id) &&
+                    (creatorId == null || a.AppointmentCreatorID == creatorId) &&
+                    (status == null || ((Status)status).HasFlag(a.Status)) &&
+                    (beforeDate == null || a.PlannedDate < ((DateTime)beforeDate)) &&
+                    (afterdDate == null || a.PlannedDate > ((DateTime)afterdDate)) &&
+                    (mechanicId == null || a.MechanicAssignedID == mechanicId)
+                ).Select(a => a.PlannedDate).ToListAsync());
+
+
+                return querry;
+            }
+        }
+        public async Task<List<Appointment>> GetAppointmentsByFilter(int? id = null, int? creatorId = null, Status? status = null, DateTime? afterdDate = null, DateTime? beforeDate = null, int? mechanicId = null)
         {
             using (var _database = _databaseFactory.CreateDbContext())
             {
@@ -92,6 +109,8 @@ namespace DatabaseLibrary.Database.Appointments
                     (id == null || a.ID == id) &&
                     (creatorId == null || a.AppointmentCreatorID == creatorId) &&
                     (status == null || ((Status)status).HasFlag(a.Status)) &&
+                    (beforeDate == null || a.PlannedDate < ((DateTime)beforeDate)) &&
+                    (afterdDate == null || a.PlannedDate > ((DateTime)afterdDate)) &&
                     (mechanicId == null || a.MechanicAssignedID == mechanicId)
                 ).ToListAsync());
 

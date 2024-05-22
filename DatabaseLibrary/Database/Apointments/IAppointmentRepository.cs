@@ -10,10 +10,22 @@ namespace DatabaseLibrary.Database.Appointments;
 public interface IAppointmentRepository
 {
     Task<string> CreateAppointment(Appointment Appointment);
+
+    Task<List<DateTime>> GetAllAppointmentsDatesByFilter(
+        int? id = null,
+        int? creatorId = null,
+        Status? status = null,
+        DateTime? afterdDate = null,
+        DateTime? beforeDate = null,
+        int? mechanicId = null
+    );
+
     Task<List<Appointment>> GetAppointmentsByFilter(
         int? id = null,
         int? creatorId = null,
         Status? status = null,
+        DateTime? afterdDate = null,
+        DateTime? beforeDate = null,
         int? mechanicId = null
     );
     Task UpdateAppointment(int id,

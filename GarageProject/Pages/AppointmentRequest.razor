@@ -70,7 +70,8 @@
             Invoice = null,
         };
 
-        ExistingAppointments = (await appointmentRepository.GetAppointmentsByFilter(status:Status.Taken)).Select(a => a.PlannedDate).ToList();
+        //ExistingAppointments = (await appointmentRepository.GetAppointmentsByFilter(status:Status.Taken,afterdDate:DateTime.Now.AddDays(-1))).Select(a => a.PlannedDate).ToList();
+        ExistingAppointments = (await appointmentRepository.GetAllAppointmentsDatesByFilter(status:Status.Taken,afterdDate:DateTime.Now.AddDays(-1)));
     }
 
     private async Task RequestAppointment()
