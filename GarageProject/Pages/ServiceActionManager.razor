@@ -37,7 +37,7 @@
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
-        ServiceActions = await serviceActionRepository.GetServiceActionsByFilter();
+        ServiceActions = await serviceActionRepository.GetAllServiceActions();
         isLoading = false;
     }
     private async Task CreateItem(ServiceAction serviceAction) => await serviceActionRepository.CreateServiceAction(serviceAction);

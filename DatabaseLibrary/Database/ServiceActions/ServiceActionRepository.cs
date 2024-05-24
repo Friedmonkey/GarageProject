@@ -3,6 +3,7 @@ using DatabaseLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Crypto;
 using System.Security.Principal;
+using System.Xml.Linq;
 
 namespace DatabaseLibrary.Database.ServiceActions;
 
@@ -27,14 +28,23 @@ public class ServiceActionRepository : IServiceActionRepository
     }
     #endregion
     #region Read 
-    public async Task<List<ServiceAction>> GetServiceActionsByFilter(int? id = null, string? name = null)
+    public async Task<List<ServiceAction>> GetServiceActionsByFilter(int? id = null, string? name = null, float? price = null)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
             return (await _database.ServiceActions.Where(a =>
                 (id == null || a.ID == id) &&
-                (name == null || a.Name.ToLower() == name.ToLower())
+                (name == null || a.Name.ToLower() == name.ToLower()) &&
+                (price == null || a.HourPrice.Equals(price))
             ).ToListAsync());
+        }
+    }
+
+    public async Task<List<ServiceAction>> GetAllServiceActions()
+    {
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            return await _database.ServiceActions.ToListAsync();
         }
     }
     public async Task<List<ServiceAction>> GetServiceActionsBySearchFilter(string? name = null)

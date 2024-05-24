@@ -14,8 +14,7 @@ public class ServiceAction : ICreationTableCompatible
     public float HourPrice { get; set; }
     public string Description { get; set; }
 
-    
-
+ 
     [NotMapped]
     public float Cost { get => HourPrice; set => HourPrice = value; }
 

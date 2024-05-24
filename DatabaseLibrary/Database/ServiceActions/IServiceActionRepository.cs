@@ -12,11 +12,13 @@ public interface IServiceActionRepository
     Task<string> CreateServiceAction(ServiceAction serviceAction);
     Task<List<ServiceAction>> GetServiceActionsByFilter(
         int? id = null,
-        string? name = null
+        string? name = null,
+        float? price = null
     );
     Task<List<ServiceAction>> GetServiceActionsBySearchFilter(
         string? name = null
     );
+    Task<List<ServiceAction>> GetAllServiceActions();
     Task UpdateServiceAction(int id, ServiceAction serviceAction);
     Task UpdateServiceAction(int id,
         string? name = null,
