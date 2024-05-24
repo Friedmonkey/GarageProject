@@ -7,8 +7,10 @@
 @inject IUserRepository userRepository;
 @inject IAppointmentRepository appointmentRepository;
 @inject AuthenticationStateProvider authProvider;
+@inject NavigationManager navManager;
+@inject ISnackbar snackBar;
 
-<MudCalendar Items="Appointments" />
+<MudCalendar ItemClicked="ItemClicked" Items="Appointments" />
 
 @code {
     private List<CalendarItem> Appointments = new List<CalendarItem>();
@@ -16,6 +18,25 @@
 
     public UserAccount Profile { get; set; } = null;
     private bool loaded;
+
+    private async Task ItemClicked(CalendarItem item)
+    {
+        // DateTime after = item.Start.AddHours(-1);
+        // DateTime before = item.Start.AddHours(1);
+        // var appointment = (await appointmentRepository.GetAppointmentsByFilter(afterdDate:after, beforeDate:before, mechanicId:Profile.ID)).First();
+        // if (appointment == null)
+        // {
+        //     snackBar.Add("Appointment not found.", Severity.Error);
+        //     return;    
+        // }
+
+        // navManager.NavigateTo($"appointment/detail/{appointment.ID}");
+
+
+        string appointmentID = item.Text.Split(':').First();
+        navManager.NavigateTo($"appointment/detail/{appointmentID}");
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,8 +69,8 @@
             new CalendarItem()
             {
                 Start = a.PlannedDate,
-                    End = a.PlannedDate.AddHours(12.5),
-                Text = "Appointment scheduled for " + a.AppointmentCreator.FullName
+                End = a.PlannedDate.AddHours(12.5),
+                Text = $"{a.ID}:Appointment scheduled for {a.AppointmentCreator.FullName}",
             }
         ).ToList();
     }
