@@ -22,7 +22,7 @@ public interface IInvoiceRepository
     );
     Task<List<Material>> GetMaterialsByInvoiceId(int invoiceID);
     Task<List<ServiceAction>> GetServiceActionsByInvoiceId(int invoiceID);
-    Task<InvoiceMaterialCouple?> GetInvoiceMaterialCouple(int invoiceId, int materialId);
+    Task<InvoiceMaterialDTO?> GetInvoiceMaterialCouple(int invoiceId, int materialId);
 
     Task UpdateInvoice(int id,
         int? customerID = null,

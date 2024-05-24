@@ -8,12 +8,11 @@
         {
             <MudTextField T="string" @bind-Value="(Value as Material).Name" Label="Name" />
             <MudTextField T="float" @bind-Value="(Value as Material).SingleCost" Label="Single Cost" />
-            <MudTextField T="int" @bind-Value="(Value as Material).Amount" Label="Amount" />
         }
         else if (Value is ServiceAction)
         {
             <MudTextField T="string" @bind-Value="(Value as ServiceAction).Name" Label="Name" />
-            <MudTextField T="float" @bind-Value="(Value as ServiceAction).Price" Label="Price" />
+            <MudTextField T="float" @bind-Value="(Value as ServiceAction).HourPrice" Label="Price" />
             <MudTextField T="string" @bind-Value="(Value as ServiceAction).Description" Label="Description" />
         }
 

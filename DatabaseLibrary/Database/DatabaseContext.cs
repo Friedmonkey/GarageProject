@@ -27,8 +27,8 @@ public class DatabaseContext : DbContext
     public DbSet<AppointmentDTO> Appointments { get; set; }
 
     public DbSet<InvoiceDTO> Invoices { get; set; }
-    public DbSet<InvoiceMaterialCouple> InvoiceMaterialCouples { get; set; }
-    public DbSet<InvoiceServiceActionCouple> InvoiceServiceActionCouples { get; set; }
+    public DbSet<InvoiceMaterialDTO> InvoiceMaterialCouples { get; set; }
+    public DbSet<InvoiceServiceActionDTO> InvoiceServiceActionCouples { get; set; }
 
     public DbSet<Material> Materials { get; set; }
     public DbSet<ServiceAction> ServiceActions { get; set; }

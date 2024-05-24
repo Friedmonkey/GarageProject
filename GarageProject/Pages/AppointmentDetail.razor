@@ -1,0 +1,66 @@
+﻿@page "/appointment/detail/{IdStr}";
+@inject IWebHostEnvironment WebHostEnvironment;
+@inject IAppointmentRepository appointmentRepository;
+@inject IMaterialRepository materialRepository;
+@inject IServiceActionRepository serviceActionRepository;
+@inject ISnackbar snackBar;
+@inject IDialogService dialogService;
+@inject NavigationManager navManager;
+
+
+@using System.Text;
+@using DatabaseLibrary.Database.Materials;
+@using DatabaseLibrary.Database.Appointments;
+@using DatabaseLibrary.Database.ServiceActions;
+
+
+<PageTitle>Appointment Detail</PageTitle>
+
+<AuthorizeView Roles="@($"{UserAccount.Admin},{UserAccount.Secretary}{UserAccount.Mechanic}")">
+    <Authorized>
+        <div Class="gap-4 d-flex flex-wrap">
+            <MudText Class="w100">Appointment Detail</MudText>
+                @if(materials != null)
+                {
+                    <MudCard>
+                        <MudSelect T="Material" Label="Material" AnchorOrigin="Origin.BottomCenter">
+                            @foreach (var item in materials)
+                            {
+                                <MudSelectItem Value="@item" />
+                            }
+                        </MudSelect>
+                        @*<MudNumericField></MudNumericField>*@
+                    </MudCard>
+                }
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <Auth />
+    </NotAuthorized>
+</AuthorizeView>
+
+    
+
+@code {
+    [Parameter]
+    public string IdStr { get; set; }
+    public int? Id => ParsingExtention.IntTryParse(IdStr);
+
+    [CascadingParameter(Name = "AuthUser")]
+    public UserAccount? User { get; set; }
+
+    private Appointment appointment = new Appointment();
+    private List<Material> materials = new List<Material>();
+    private List<ServiceAction> serviceActions = new List<ServiceAction>();
+
+    private decimal AmountOfMaterials;
+
+    protected override async Task OnInitializedAsync()
+    {
+        appointment = (await appointmentRepository.GetAppointmentsByFilter(id:Id)).ToList().FirstOrDefault();
+        materials = (await materialRepository.GetMaterialsByFilter()).ToList();
+        serviceActions = (await serviceActionRepository.GetServiceActionsByFilter()).ToList();
+    }
+
+    
+}

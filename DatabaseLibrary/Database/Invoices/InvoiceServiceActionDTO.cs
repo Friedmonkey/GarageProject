@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace DatabaseLibrary.Database.Invoices;
 
-public class InvoiceMaterialCouple
+public class InvoiceServiceActionDTO
 {
     public int ID { get; set; }
     public int InvoiceId { get; set; }
-    public int MaterialId { get; set; }
+    public int ServiceActionId { get; set; }
+    public float Hour { get; set; }
 }

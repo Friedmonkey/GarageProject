@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,7 +29,7 @@ public class InvoiceRepository : IInvoiceRepository
             if (customer == null) return null; //throw new Exception("customer not found!");
 
 
-            List<Material> materials = await GetMaterialsByInvoiceId(entity.ID);
+            var materials = await GetAllInvoiceMaterialCouple(entity.ID);
             List<ServiceAction> serviceActions = await GetServiceActionsByInvoiceId(entity.ID);
 
             return new Invoice()
@@ -43,6 +44,25 @@ public class InvoiceRepository : IInvoiceRepository
                 ServiceCost = entity.ServiceCost,
             };
         }
+    }
+
+
+    private async Task<List<InvoiceMaterial>> ConvertInvoiceMaterialDTOToInvoiceMaterial(List<InvoiceMaterialDTO> invoiceMaterialDTOs)
+    {
+        List<InvoiceMaterial> returnList= new List<InvoiceMaterial>();
+
+        foreach (var invoiceMaterialDTO in invoiceMaterialDTOs)
+        {
+            var tempInvoiceMaterial = new InvoiceMaterial()
+            {
+                ID = invoiceMaterialDTO.ID,
+                Invoice = await GetInvoiceByFilter(invoiceMaterialDTO.InvoiceId),
+                Material = await GetMaterialsByInvoiceId(invoiceMaterialDTO.InvoiceId),
+                Amount = invoiceMaterialDTO.Amount,
+            };
+            returnList.Add(tempInvoiceMaterial);
+        }
+        return returnList;
     }
 
     private async Task<InvoiceDTO> Convert(Invoice entity)
@@ -76,7 +96,7 @@ public class InvoiceRepository : IInvoiceRepository
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
-            await _database.InvoiceMaterialCouples.AddAsync(new InvoiceMaterialCouple()
+            await _database.InvoiceMaterialCouples.AddAsync(new InvoiceMaterialDTO()
             {
                 InvoiceId = invoiceId,
                 MaterialId = materialId
@@ -162,7 +182,7 @@ public class InvoiceRepository : IInvoiceRepository
             return serviceActions;
         }
     }
-    public async Task<InvoiceMaterialCouple?> GetInvoiceMaterialCouple(int invoiceId, int materialId)
+    public async Task<InvoiceMaterialDTO?> GetInvoiceMaterialCouple(int invoiceId, int materialId)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
@@ -174,6 +194,21 @@ public class InvoiceRepository : IInvoiceRepository
             return null;
         }
     }
+
+    public async Task<List<InvoiceMaterial>> GetAllInvoiceMaterialCouple(int invoiceId)
+    {
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            var couple = await _database.InvoiceMaterialCouples.Where(im => im.InvoiceId == invoiceId).ToListAsync();
+            if (couple != null)
+            {
+
+                return await ConvertInvoiceMaterialDTOToInvoiceMaterial(couple);
+            }
+            return null;
+        }
+    }
+
     #endregion
     #region Update 
     public async Task UpdateInvoice(int id, int? customerID = null, DateTime? date = null, float? serviceCost = null, float? AppointmentCost = null, string? brand = null)

@@ -27,14 +27,13 @@ public class ServiceActionRepository : IServiceActionRepository
     }
     #endregion
     #region Read 
-    public async Task<List<ServiceAction>> GetServiceActionsByFilter(int? id = null, string? name = null, float? price = null)
+    public async Task<List<ServiceAction>> GetServiceActionsByFilter(int? id = null, string? name = null)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
             return (await _database.ServiceActions.Where(a =>
                 (id == null || a.ID == id) &&
-                (name == null || a.Name.ToLower() == name.ToLower()) &&
-                (price == null || a.Price == price)
+                (name == null || a.Name.ToLower() == name.ToLower())
             ).ToListAsync());
         }
     }
@@ -51,7 +50,7 @@ public class ServiceActionRepository : IServiceActionRepository
     #region Update 
     public async Task UpdateServiceAction(int id, ServiceAction sa)
     {
-        await UpdateServiceAction(id, sa.Name, sa.Price, sa.Description);
+        await UpdateServiceAction(id, sa.Name, sa.HourPrice, sa.Description);
     }
     public async Task UpdateServiceAction(int id, string? name = null, float? price = null, string? description = null)
     {
@@ -63,7 +62,7 @@ public class ServiceActionRepository : IServiceActionRepository
                 if (name != null)
                     result.Name = name;
                 if (price != null)
-                    result.Price = (float)price;
+                    result.HourPrice = (float)price;
                 if (description != null)
                     result.Description = (string)description;
 

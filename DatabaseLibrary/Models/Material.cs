@@ -12,10 +12,6 @@ public class Material : ICreationTableCompatible
     public int ID { get; set; }
     public string Name { get; set; }
     public float SingleCost { get; set; }
-    public int Amount { get; set; }
-
-    [NotMapped]
-    public float TotalCost => SingleCost * Amount;
 
     [NotMapped]
     public float Cost { get => SingleCost; set => SingleCost = value; }
@@ -27,7 +23,6 @@ public class Material : ICreationTableCompatible
             ID = ID,
             Name = Name,
             SingleCost = SingleCost,
-            Amount = Amount,
         };
     }
 
@@ -41,7 +36,6 @@ public class Material : ICreationTableCompatible
         this.ID = sourceMaterial.ID;
         this.Name = sourceMaterial.Name;
         this.SingleCost = sourceMaterial.SingleCost;
-        this.Amount = sourceMaterial.Amount;
     }
 
     public bool MatchesFilter(string filter)

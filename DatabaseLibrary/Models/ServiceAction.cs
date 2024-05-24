@@ -11,12 +11,13 @@ public class ServiceAction : ICreationTableCompatible
 {
     public int ID { get; set; }
     public string Name { get; set; }
-    public float Price { get; set; }
+    public float HourPrice { get; set; }
     public string Description { get; set; }
 
+    
 
     [NotMapped]
-    public float Cost { get => Price; set => Price = value; }
+    public float Cost { get => HourPrice; set => HourPrice = value; }
 
     public ICreationTableCompatible Copy()
     {
@@ -24,7 +25,7 @@ public class ServiceAction : ICreationTableCompatible
         {
             ID = ID,
             Name = Name,
-            Price = Price,
+            HourPrice = HourPrice,
             Description = Description
         };
     }
@@ -37,7 +38,7 @@ public class ServiceAction : ICreationTableCompatible
 
         this.ID = sourceServiceAction.ID;
         this.Name = sourceServiceAction.Name;
-        this.Price = sourceServiceAction.Price;
+        this.HourPrice = sourceServiceAction.HourPrice;
         this.Description = sourceServiceAction.Description;
     }
 

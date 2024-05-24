@@ -12,8 +12,7 @@ public interface IServiceActionRepository
     Task<string> CreateServiceAction(ServiceAction serviceAction);
     Task<List<ServiceAction>> GetServiceActionsByFilter(
         int? id = null,
-        string? name = null,
-        float? price = null
+        string? name = null
     );
     Task<List<ServiceAction>> GetServiceActionsBySearchFilter(
         string? name = null

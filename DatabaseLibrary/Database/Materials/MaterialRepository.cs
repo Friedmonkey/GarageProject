@@ -34,8 +34,7 @@ public class MaterialRepository : IMaterialRepository
             return (await _database.Materials.Where(a =>
                 (id == null || a.ID == id) &&
                 (name == null || a.Name.ToLower() == name.ToLower()) &&
-                (singleCost == null || a.SingleCost == singleCost) &&
-                (amount == null || a.Amount == amount)
+                (singleCost == null || a.SingleCost == singleCost)
             ).ToListAsync());
         }
     }
@@ -52,7 +51,7 @@ public class MaterialRepository : IMaterialRepository
     #region Update 
     public async Task UpdateMaterial(int id, Material m)
     {
-        await UpdateMaterial(id, m.Name, m.SingleCost, m.Amount);
+        await UpdateMaterial(id, m.Name, m.SingleCost);
     }
     public async Task UpdateMaterial(int id, string? name = null, float? singleCost = null, int? amount = null)
     {
@@ -65,9 +64,6 @@ public class MaterialRepository : IMaterialRepository
                     result.Name = name;
                 if (singleCost != null)
                     result.SingleCost = (float)singleCost;
-                if (amount != null)
-                    result.Amount = (int)amount;
-
                 _database.SaveChanges();
             }
         }
