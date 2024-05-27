@@ -160,7 +160,7 @@ else
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
-            materialsToAdd.Remove(material);
+            materialsToAdd.Remove((Material)material);
             StateHasChanged();
         }
             
