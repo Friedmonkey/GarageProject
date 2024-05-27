@@ -3,41 +3,79 @@
 @inject IAppointmentRepository appointmentRepository;
 @inject IMaterialRepository materialRepository;
 @inject IServiceActionRepository serviceActionRepository;
+@inject IInvoiceRepository invoiceRepository;
 @inject ISnackbar snackBar;
 @inject IDialogService dialogService;
 @inject NavigationManager navManager;
+
 
 
 @using System.Text;
 @using DatabaseLibrary.Database.Materials;
 @using DatabaseLibrary.Database.Appointments;
 @using DatabaseLibrary.Database.ServiceActions;
+@using DatabaseLibrary.Database.Invoices;
 
 
 <PageTitle>Appointment Detail</PageTitle>
-
-<AuthorizeView Roles="@($"{UserAccount.Admin},{UserAccount.Secretary}{UserAccount.Mechanic}")">
-    <Authorized>
-        <div Class="gap-4 d-flex flex-wrap">
-            <MudText Class="w100">Appointment Detail</MudText>
-                @if(materials != null)
-                {
-                    <MudCard>
-                        <MudSelect T="Material" Label="Material" AnchorOrigin="Origin.BottomCenter">
+@if(appointment == null)
+{
+    <Auth />
+}
+else
+{
+    <AuthorizeView Roles="@($"{UserAccount.Admin},{UserAccount.Secretary}{UserAccount.Mechanic}")">
+        <Authorized>
+            <div Class="gap-4 d-flex flex-wrap">
+                <MudText Class="w100">Appointment Detail</MudText>
+                    @if(materials != null)
+                    {
+                        <MudSelect @bind-Value="@material" Class="w50" T="Material" Label="Material" AnchorOrigin="Origin.BottomCenter">
                             @foreach (var item in materials)
                             {
-                                <MudSelectItem Value="@item" />
+                                <MudSelectItem Value="@item">
+                                    <p>@item.Name</p>
+                                </MudSelectItem>
                             }
                         </MudSelect>
-                        @*<MudNumericField></MudNumericField>*@
-                    </MudCard>
-                }
-        </div>
-    </Authorized>
-    <NotAuthorized>
-        <Auth />
-    </NotAuthorized>
-</AuthorizeView>
+                        <MudButton OnClick="() => AddMaterialToInvoice(material)">+</MudButton>
+                    }
+                    @if (serviceActions != null)
+                    {
+                        <MudSelect @bind-Value="@serviceAction" Class="w50" T="ServiceAction" Label="Service Action" AnchorOrigin="Origin.BottomCenter">
+                            @foreach (var item in serviceActions)
+                            {
+                                <MudSelectItem Value="@item">
+                                    <p>@item.Name </p>
+                                </MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudButton OnClick="() => AddServiceActionToInvoice(serviceAction)">+</MudButton>
+                    }
+            </div>
+            <div>
+                <MudText>With Delete Dialog</MudText>
+                <MudTable Items="@materialsToAdd" Hover="true" Dense="true" @bind-SelectedItem="@selectedItem1" Striped="true" Bordered="true" Class="mb-6">
+                    <HeaderContent>
+                            <MudTh>Name</MudTh>
+                            <MudTh>Cost</MudTh>
+                            <MudTh>Amount</MudTh>
+                            <MudTh>Delete</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="Material">
+                        <MudTd>@Material.Name</MudTd>
+                        <MudTd>@Material.Cost</MudTd>
+                        <MudTd>@AmountOfMaterials</MudTd>
+                        <MudIcon Class="ma-4" Icon="@Icons.Outlined.Delete" @onclick="@( async() => await RemoveItemMaterial(Material))" Size="Size.Small"></MudIcon>
+                    </RowTemplate>
+                </MudTable>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <Auth />
+        </NotAuthorized>
+    </AuthorizeView>
+}
 
     
 
@@ -51,16 +89,87 @@
 
     private Appointment appointment = new Appointment();
     private List<Material> materials = new List<Material>();
-    private List<ServiceAction> serviceActions = new List<ServiceAction>();
+    private List<Material> materialsToAdd = new List<Material>();
+    private Material material = new Material();
+    private Material selectedItem1 = new Material();
+    private ServiceAction selectedItem2 = new ServiceAction();
+    private ServiceAction serviceAction = new ServiceAction();
+    private List<ServiceAction> serviceActions= new List<ServiceAction>();
+    private List<ServiceAction> serviceActionsToAdd = new List<ServiceAction>();
+    private Invoice invoice = new Invoice();
+    private Material BackupMaterial = new Material();
+    private ServiceAction BackupServiceAction = new ServiceAction();
 
-    private decimal AmountOfMaterials;
+    private float AmountOfMaterials;
+    private float AmountOfServiceAction;
 
     protected override async Task OnInitializedAsync()
     {
         appointment = (await appointmentRepository.GetAppointmentsByFilter(id:Id)).ToList().FirstOrDefault();
         materials = (await materialRepository.GetMaterialsByFilter()).ToList();
         serviceActions = (await serviceActionRepository.GetServiceActionsByFilter()).ToList();
+        invoice = (await invoiceRepository.GetInvoiceByFilter(appointment.Invoice.ID));
     }
 
+    private void AddMaterialToInvoice(Material m)
+    {
+        if(material != null)
+        {
+            materialsToAdd.Add(m);
+            materials.Remove(m);
+            StateHasChanged();
+        }
+
+    }
+    private void AddServiceActionToInvoice(ServiceAction s)
+    {
+        if (serviceAction != null && serviceActionsToAdd.Contains(s))
+        {
+            serviceActionsToAdd.Add(s);
+            serviceActions.Remove(s);
+            StateHasChanged();
+        }
+
+    }
+
+    private void SendInvoice()
+    {
+        if (materialsToAdd.Count < 0)
+        {
+
+        }
+
+        if (serviceActionsToAdd.Count < 0)
+        {
+
+        }
+    }
+
+    private async Task RemoveItemMaterial(object material)
+    {
+        await Task.Delay(0);
+
+        var parameters = new DialogParameters();
+        parameters.Add("ContentText", "Do you really want to delete this record? This process cannot be undone.");
+        parameters.Add("ButtonText", "Delete");
+        parameters.Add("Color", Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = DialogService.Show<DeleteDialog>("Delete", parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            materialsToAdd.Remove(material);
+            StateHasChanged();
+        }
+            
+    }
+
+    private void RemoveItemServiceAction(object serviceAction)
+    {
+        BackupServiceAction = (ServiceAction)serviceAction;
+    }
+    
     
 }
