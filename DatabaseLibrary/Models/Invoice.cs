@@ -16,6 +16,6 @@ public class Invoice
     public float AppointmentCost { get; set; }
     public string Brand { get; set; }
     public List<InvoiceMaterial> Materials { get; set; }
-    public List<ServiceAction> ServiceActions { get; set; }
+    public List<InvoiceServiceAction> ServiceActions { get; set; }
     
 }

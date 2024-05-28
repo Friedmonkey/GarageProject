@@ -27,6 +27,8 @@ public interface IInvoiceRepository
     Task UpdateInvoice(int id,
         int? customerID = null,
         DateTime? date = null,
+        List<InvoiceMaterial>? invoiceMaterials = null,
+        List<InvoiceServiceAction>? serviceActions= null,
         float? serviceCost = null,
         float? AppointmentCost = null,
         string? brand = null

@@ -30,7 +30,7 @@ else
                 <MudText Class="w100">Appointment Detail</MudText>
                     @if(materials != null)
                     {
-                        <MudSelect @bind-Value="@material" Class="w50" T="Material" Label="Material" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelect T="Material" @bind-Value="@material" Class="w50" Text="Material" Label="Material" AnchorOrigin="Origin.BottomCenter">
                             @foreach (var item in materials)
                             {
                                 <MudSelectItem Value="@item">
@@ -38,11 +38,11 @@ else
                                 </MudSelectItem>
                             }
                         </MudSelect>
-                        <MudButton OnClick="() => AddMaterialToInvoice(material)">+</MudButton>
+                    <MudButton OnClick="() => AddMaterialToInvoice(material,AmountOfMaterials)">+</MudButton>
                     }
                     @if (serviceActions != null)
                     {
-                        <MudSelect @bind-Value="@serviceAction" Class="w50" T="ServiceAction" Label="Service Action" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelect T="ServiceAction" @bind-Value="@serviceAction" Class="w50" Text="Service Action" Label="Service Action" AnchorOrigin="Origin.BottomCenter">
                             @foreach (var item in serviceActions)
                             {
                                 <MudSelectItem Value="@item">
@@ -50,25 +50,37 @@ else
                                 </MudSelectItem>
                             }
                         </MudSelect>
-                        <MudButton OnClick="() => AddServiceActionToInvoice(serviceAction)">+</MudButton>
+                        <MudButton OnClick="() => AddServiceActionToInvoice(serviceAction, AmountOfServiceAction)">+</MudButton>
                     }
             </div>
+            <div Class="gap-2 d-flex flex-wrap">
+
+                @if (invoiceServiceActionsToAdd != null)
+                {
+                    <MudPaper Class="w40">
+                        <MudText>List of ServiceAction</MudText>
+                        <MudTable Items="@invoiceServiceActionsToAdd" @bind-SelectedItem="@selectedItem2" Hover="true" Dense="true" Striped="true" Bordered="true" Class="mb-6">
+                            <HeaderContent>
+                                <MudTh>Name</MudTh>
+                                <MudTh>Price per hour</MudTh>
+                                <MudTh>Amount of Hours</MudTh>
+                                <MudTh>Delete</MudTh>
+                            </HeaderContent>
+                                <RowTemplate Context="ServiceAction">
+                                <MudTd>@ServiceAction.ServiceAction.Name</MudTd>
+                                    <MudTd>@ServiceAction.ServiceAction.HourPrice</MudTd>
+                                <MudTd>@AmountOfMaterials</MudTd>
+                                    <MudIcon Class="ma-4" Icon="@Icons.Outlined.Delete" @onclick="@( async() => await RemoveItem(ServiceAction,ServiceAction.GetType()))" Size="Size.Small"></MudIcon>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudPaper>
+                }
+            </div>
             <div>
-                <MudText>With Delete Dialog</MudText>
-                <MudTable Items="@materialsToAdd" Hover="true" Dense="true" @bind-SelectedItem="@selectedItem1" Striped="true" Bordered="true" Class="mb-6">
-                    <HeaderContent>
-                            <MudTh>Name</MudTh>
-                            <MudTh>Cost</MudTh>
-                            <MudTh>Amount</MudTh>
-                            <MudTh>Delete</MudTh>
-                    </HeaderContent>
-                    <RowTemplate Context="Material">
-                        <MudTd>@Material.Name</MudTd>
-                        <MudTd>@Material.Cost</MudTd>
-                        <MudTd>@AmountOfMaterials</MudTd>
-                        <MudIcon Class="ma-4" Icon="@Icons.Outlined.Delete" @onclick="@( async() => await RemoveItemMaterial(Material))" Size="Size.Small"></MudIcon>
-                    </RowTemplate>
-                </MudTable>
+                @if (invoice.ServiceActions != null && invoice.Materials != null)
+                {
+                    <MudButton @*OnClick="() => SendInvoice()"*@> Send Invoice</MudButton>
+                }
             </div>
         </Authorized>
         <NotAuthorized>
@@ -88,17 +100,20 @@ else
     public UserAccount? User { get; set; }
 
     private Appointment appointment = new Appointment();
+
     private List<Material> materials = new List<Material>();
-    private List<Material> materialsToAdd = new List<Material>();
+
     private Material material = new Material();
-    private Material selectedItem1 = new Material();
-    private ServiceAction selectedItem2 = new ServiceAction();
+    private InvoiceMaterial selectedItem1 = new InvoiceMaterial();
+
+    private InvoiceServiceAction selectedItem2 = new InvoiceServiceAction();
     private ServiceAction serviceAction = new ServiceAction();
     private List<ServiceAction> serviceActions= new List<ServiceAction>();
-    private List<ServiceAction> serviceActionsToAdd = new List<ServiceAction>();
+    private List<InvoiceServiceAction> invoiceServiceActionsToAdd = new List<InvoiceServiceAction>();
+    private List<InvoiceMaterial> invoiceMaterialsToAdd = new List<InvoiceMaterial>();
+
     private Invoice invoice = new Invoice();
-    private Material BackupMaterial = new Material();
-    private ServiceAction BackupServiceAction = new ServiceAction();
+
 
     private float AmountOfMaterials;
     private float AmountOfServiceAction;
@@ -111,41 +126,71 @@ else
         invoice = (await invoiceRepository.GetInvoiceByFilter(appointment.Invoice.ID));
     }
 
-    private void AddMaterialToInvoice(Material m)
+    private void AddMaterialToInvoice(Material m, float amount)
     {
-        if(material != null)
+        InvoiceMaterial tempIM = new InvoiceMaterial();
+        if (material != null && amount != null)
         {
-            materialsToAdd.Add(m);
-            materials.Remove(m);
-            StateHasChanged();
+            bool contains = true;
+            foreach (var item in invoiceMaterialsToAdd)
+            {
+                if (item.Material != m)
+                {
+                    tempIM = new InvoiceMaterial()
+                        {
+                            Material = m,
+                            Amount = amount
+                        };
+                }
+                else
+                {
+                    tempIM = null;
+                }
+
+            }
+            if (!contains && tempIM != null)
+            {
+                invoiceMaterialsToAdd.Add(tempIM);
+                materials.Remove(tempIM.Material);
+                material = new Material();
+                StateHasChanged();
+            }
+        }
+    }
+    private void AddServiceActionToInvoice(ServiceAction s, float AmoutOfHours)
+    {
+        InvoiceServiceAction tempIM = new InvoiceServiceAction();
+        if (serviceAction != null && AmoutOfHours != null)
+        {
+            bool contains = true;
+            foreach (var item in invoiceServiceActionsToAdd)
+            {
+                if (item.ServiceAction != s)
+                {
+                    tempIM = new InvoiceServiceAction()
+                        {
+                            ServiceAction = s,
+                            Hours = AmoutOfHours
+                        };
+                }
+                else
+                {
+                    tempIM = null;
+                }
+
+            }
+            if (!contains && tempIM != null)
+            {
+                invoiceServiceActionsToAdd.Add(tempIM);
+                serviceActions.Remove(tempIM.ServiceAction);
+                serviceAction = new ServiceAction();
+                StateHasChanged();
+            }
         }
 
     }
-    private void AddServiceActionToInvoice(ServiceAction s)
-    {
-        if (serviceAction != null && serviceActionsToAdd.Contains(s))
-        {
-            serviceActionsToAdd.Add(s);
-            serviceActions.Remove(s);
-            StateHasChanged();
-        }
 
-    }
-
-    private void SendInvoice()
-    {
-        if (materialsToAdd.Count < 0)
-        {
-
-        }
-
-        if (serviceActionsToAdd.Count < 0)
-        {
-
-        }
-    }
-
-    private async Task RemoveItemMaterial(object material)
+    private async Task RemoveItem(object Obj, Type type)
     {
         await Task.Delay(0);
 
@@ -156,19 +201,36 @@ else
 
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
-        var dialog = DialogService.Show<DeleteDialog>("Delete", parameters, options);
+        var dialog = dialogService.Show<DeleteDialog>("Delete", parameters, options);
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
-            materialsToAdd.Remove((Material)material);
+            if (typeof(Material) == type)
+            {
+                invoiceMaterialsToAdd.Remove((InvoiceMaterial)Obj);
+                materials.Add(((InvoiceMaterial)Obj).Material);
+            }
+            else if (typeof(ServiceAction) == type)
+            {
+                invoiceServiceActionsToAdd.Remove((InvoiceServiceAction)Obj);
+                serviceActions.Add((ServiceAction)Obj);
+            }
             StateHasChanged();
         }
-            
-    }
 
-    private void RemoveItemServiceAction(object serviceAction)
+
+    }
+    private void SendInvoice()
     {
-        BackupServiceAction = (ServiceAction)serviceAction;
+        if (invoiceMaterialsToAdd.Count() < 0 && invoiceMaterialsToAdd != null && invoiceServiceActionsToAdd.Count() < 0 && invoiceServiceActionsToAdd != null)
+        {
+            invoice.ServiceActions = invoiceServiceActionsToAdd;
+            invoice.Materials = invoiceMaterialsToAdd;
+        }
+        if(invoice != null)
+        {
+            invoiceRepository.UpdateInvoice(invoice.ID, invoice.Customer.ID, invoice.Date);
+        }
     }
     
     

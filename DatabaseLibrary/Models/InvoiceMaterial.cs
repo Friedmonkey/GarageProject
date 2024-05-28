@@ -11,6 +11,6 @@ public class InvoiceMaterial
 {
     public int ID { get; set; }
     public Invoice Invoice { get; set; }
-    public List<Material> Material { get; set; }
+    public Material Material { get; set; }
     public float Amount { get; set; }
 }
