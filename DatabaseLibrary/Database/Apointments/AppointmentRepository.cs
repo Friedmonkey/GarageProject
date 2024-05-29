@@ -73,7 +73,15 @@ namespace DatabaseLibrary.Database.Appointments
             {
                 //if (await _database.Appointments.FirstOrDefaultAsync(a => a.PlannedDate == Appointment.PlannedDate) == null)
                 //{
-                _database.Appointments.Add(await Convert(Appointment));
+                var appointmentDTO = await Convert(Appointment);
+
+                if (Appointment.Invoice == null)
+                {
+                    int id = await _invoiceRepository.CreateInvoice(new Invoice(Appointment.AppointmentCreator));
+                    appointmentDTO.InvoiceID = id;
+                }
+
+                _database.Appointments.Add(appointmentDTO);
                 _database.SaveChanges();
                 return "success";
                 //}

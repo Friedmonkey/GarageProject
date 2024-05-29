@@ -4,6 +4,7 @@
 @inject IMaterialRepository materialRepository;
 @inject IServiceActionRepository serviceActionRepository;
 @inject IInvoiceRepository invoiceRepository;
+@inject IInvoiceCoupleRepository invoiceCoupleRepository;
 @inject ISnackbar snackBar;
 @inject IDialogService dialogService;
 @inject NavigationManager navManager;
@@ -15,6 +16,7 @@
 @using DatabaseLibrary.Database.Appointments;
 @using DatabaseLibrary.Database.ServiceActions;
 @using DatabaseLibrary.Database.Invoices;
+@using DatabaseLibrary.Database.InvoiceCouples;
 
 
 <PageTitle>Appointment Detail</PageTitle>
@@ -100,7 +102,6 @@ else
     public Appointment Appointment = new Appointment();
     public List<Material> Materials = new List<Material>();
     public List<ServiceAction> ServiceActions = new List<ServiceAction>();
-    public Invoice Invoice = new Invoice();
 
 
 
@@ -113,7 +114,7 @@ else
 
     //for the binding of fields
     private Material SelectedMaterial = new Material();
-    private ServiceAction SelectedServiceAction = new ServiceAction(); 
+    private ServiceAction SelectedServiceAction = new ServiceAction();
     private float AmountOfMaterials;
     private float AmountOfServiceAction;
 
@@ -122,59 +123,80 @@ else
         Appointment = (await appointmentRepository.GetAppointmentsByFilter(id:Id)).ToList().FirstOrDefault();
         Materials = (await materialRepository.GetMaterialsByFilter()).ToList();
         ServiceActions = (await serviceActionRepository.GetServiceActionsByFilter()).ToList();
-        if (Appointment == null)
-        {
-            throw new ArgumentNullException("Appointment was null");
-        }
-        else
-        {
-            //To Do:
-            @*  When an Appointment is made create a Invoice without the Materails and ServiceActions 
-                that will be added when the invoice is been send.
-                Invoice can't be created here because the is not proper information.*@
-            Invoice = (await invoiceRepository.GetInvoiceByFilter(Appointment.Invoice.ID));
-
-        }
+        //invoice = (await invoiceRepository.GetInvoiceByFilter(appointment.Invoice.ID));
     }
 
-    private void AddMaterialToInvoice(Material m, float amount)
+    private async Task AddMaterialToInvoice(Material material, float amount)
     {
-        InvoiceMaterial tempIM = new InvoiceMaterial();
-        if (SelectedMaterial == null)
+        if (material == null)
         {
-            throw new ArgumentNullException("Material m was null");
+            throw new ArgumentNullException("Material was null");
         }
-        else
-        {
-            if (AmountOfMaterials != null && AmountOfMaterials <0)
-            {
-                invoiceRepository.CreateInvoiceMaterialCouple(Invoice.ID, SelectedMaterial.ID, AmountOfMaterials);
-            }
-            else
-            {
-                throw new ArgumentNullException("AmountOfMaterial was null");
-            }
-        }
-    }
+        await invoiceCoupleRepository.CreateInvoiceMaterialCouple(Appointment.Invoice.ID, material.ID, amount);
 
-    private void AddServiceActionToInvoice(ServiceAction s, float AmoutOfHours)
+
+
+        // bool contains = true;
+        // foreach (var item in invoiceMaterialsToAdd)
+        // {
+        //     if (item.Material != material)
+        //     {
+        //         tempIM = new InvoiceMaterial()
+        //             {
+        //                 Material = material,
+        //                 Amount = amount
+        //             };
+        //     }
+        //     else
+        //     {
+        //         tempIM = null;
+        //     }
+
+        // }
+        // if (!contains && tempIM != null)
+        // {
+        //     invoiceMaterialsToAdd.Add(tempIM);
+        //     Materials.Remove(tempIM.Material);
+        //     SelectedMaterial = new Material();
+        //     StateHasChanged();
+        // }
+    }
+    private async void AddServiceActionToInvoice(ServiceAction serviceAction, float AmoutOfHours)
     {
-        InvoiceServiceAction tempISV = new InvoiceServiceAction();
-        if (s == null)
+        if (serviceAction == null)
         {
-            throw new ArgumentNullException("ServiceAction m was null");
+            throw new ArgumentNullException("ServiceAction was null");
         }
-        else
-        {
-            if (AmountOfServiceAction != null && AmountOfServiceAction < 0)
-            {
-                invoiceRepository.CreateInvoiceServiceActionCouple(Invoice.ID, SelectedServiceAction.ID, AmoutOfHours);
-            }
-            else
-            {
-                throw new ArgumentNullException("AmountOfMaterial was null");
-            }
-        }
+        await invoiceCoupleRepository.CreateInvoiceServiceActionCouple(Appointment.Invoice.ID, serviceAction.ID, AmoutOfHours);
+        // InvoiceServiceAction tempIM = new InvoiceServiceAction();
+        // if (SelectedServiceAction != null && AmoutOfHours != null)
+        // {
+        //     bool contains = true;
+        //     foreach (var item in invoiceServiceActionsToAdd)
+        //     {
+        //         if (item.ServiceAction != serviceAction)
+        //         {
+        //             tempIM = new InvoiceServiceAction()
+        //                 {
+        //                     ServiceAction = serviceAction,
+        //                     Hours = AmoutOfHours
+        //                 };
+        //         }
+        //         else
+        //         {
+        //             tempIM = null;
+        //         }
+
+        //     }
+        //     if (!contains && tempIM != null)
+        //     {
+        //         invoiceServiceActionsToAdd.Add(tempIM);
+        //         ServiceActions.Remove(tempIM.ServiceAction);
+        //         SelectedServiceAction = new ServiceAction();
+        //         StateHasChanged();
+        //     }
+        // }
+
     }
 
     private async Task RemoveItem(IInvoiceAssigned invoiceAssigned)
@@ -190,14 +212,7 @@ else
         var result = await dialog.Result;
         if (!result.Canceled)
         {
-            if (invoiceAssigned is Material material)
-            {
-                await invoiceRepository.DeleteInvoiceMaterialCouple(Invoice.ID, invoiceAssigned.ID);
-            }
-            else if (invoiceAssigned is ServiceAction serviceAction)
-            {
-                await invoiceRepository.DeleteInvoiceServiceActionCouple(Invoice.ID, invoiceAssigned.ID);
-            }
+            await invoiceCoupleRepository.DeleteInvoiceMaterialCouple(invoiceAssigned.ID);
             StateHasChanged();
         }
 
@@ -205,15 +220,15 @@ else
     }
     private void SendInvoice()
     {
-        //if (invoiceMaterialsToAdd.Count() < 0 && invoiceMaterialsToAdd != null && invoiceServiceActionsToAdd.Count() < 0 && invoiceServiceActionsToAdd != null)
-        //{
-        //    invoice.ServiceActions = invoiceServiceActionsToAdd;
-        //    invoice.Materials = invoiceMaterialsToAdd;
-        //}
-        //if(invoice != null)
-        //{
-        //    invoiceRepository.UpdateInvoice(invoice.ID, invoice.Customer.ID, invoice.Date);
-        //}
+        // if (invoiceMaterialsToAdd.Count() < 0 && invoiceMaterialsToAdd != null && invoiceServiceActionsToAdd.Count() < 0 && invoiceServiceActionsToAdd != null)
+        // {
+        //     invoice.ServiceActions = invoiceServiceActionsToAdd;
+        //     invoice.Materials = invoiceMaterialsToAdd;
+        // }
+        // if(invoice != null)
+        // {
+        //     invoiceRepository.UpdateInvoice(invoice.ID, invoice.Customer.ID, invoice.Date);
+        // }
     }
     
     
