@@ -9,6 +9,10 @@ namespace DatabaseLibrary.Models;
 
 public class Invoice
 {
+    public Invoice(UserAccount customer) 
+    {
+        Customer = customer;
+    }
     public int ID { get; set; }
     public UserAccount Customer { get; set; }
     public DateTime Date { get; set; }

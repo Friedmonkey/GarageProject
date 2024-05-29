@@ -87,27 +87,29 @@ public class InvoiceCoupleRepository : IInvoiceCoupleRepository
 
 
     #region Create
-    public async Task CreateInvoiceMaterialCouple(int invoiceId, int materialId)
+    public async Task CreateInvoiceMaterialCouple(int invoiceId, int materialId, float amount)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
             await _database.InvoiceMaterialCouples.AddAsync(new InvoiceMaterialDTO()
             {
                 InvoiceId = invoiceId,
-                MaterialId = materialId
+                MaterialId = materialId,
+                Amount = amount
             });
             await _database.SaveChangesAsync();
         }
     }
 
-    public async Task CreateInvoiceServiceActionCouple(int invoiceId, int serviceActionId)
+    public async Task CreateInvoiceServiceActionCouple(int invoiceId, int serviceActionId, float hour)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
             await _database.InvoiceServiceActionCouples.AddAsync(new InvoiceServiceActionDTO()
             {
                 InvoiceId = invoiceId,
-                ServiceActionId = serviceActionId
+                ServiceActionId = serviceActionId,
+                Hour = hour
             });
             await _database.SaveChangesAsync();
         }
@@ -179,11 +181,11 @@ public class InvoiceCoupleRepository : IInvoiceCoupleRepository
     #endregion
 
     #region Delete
-    public async Task DeleteInvoiceMaterialCouple(int invoiceId, int materialId)
+    public async Task DeleteInvoiceMaterialCouple(int invoiceMaterialCoupleId)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
-            var couple = await _database.InvoiceMaterialCouples.FirstOrDefaultAsync(im => im.InvoiceId == invoiceId && im.MaterialId == materialId);
+            var couple = await _database.InvoiceMaterialCouples.FirstOrDefaultAsync(im => im.ID == invoiceMaterialCoupleId);
             if (couple != null)
             {
                 _database.InvoiceMaterialCouples.Remove(couple);
@@ -192,11 +194,11 @@ public class InvoiceCoupleRepository : IInvoiceCoupleRepository
         }
     }
 
-    public async Task DeleteInvoiceServiceActionCouple(int invoiceId, int serviceActionId)
+    public async Task DeleteInvoiceServiceActionCouple(int invoiceServiceActionId)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
-            var couple = await _database.InvoiceServiceActionCouples.FirstOrDefaultAsync(im => im.InvoiceId == invoiceId && im.ServiceActionId == serviceActionId);
+            var couple = await _database.InvoiceServiceActionCouples.FirstOrDefaultAsync(im => im.ID == invoiceServiceActionId);
             if (couple != null)
             {
                 _database.InvoiceServiceActionCouples.Remove(couple);

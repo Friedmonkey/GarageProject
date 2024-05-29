@@ -10,7 +10,7 @@ namespace DatabaseLibrary.Database.Invoices;
 //Delete
 public interface IInvoiceRepository
 {
-    Task<string> CreateInvoice(Invoice invoice);
+    Task<int> CreateInvoice(Invoice invoice);
     Task<List<Invoice>> GetInvoicesByFilter(
         int? id = null,
         int? customerId = null

@@ -72,13 +72,14 @@ public class InvoiceRepository : IInvoiceRepository
 
 
     #region Create 
-    public async Task<string> CreateInvoice(Invoice invoice)
+    public async Task<int> CreateInvoice(Invoice invoice)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
-            _database.Invoices.Add(await Convert(invoice));
+            var invoiceDto = await Convert(invoice);
+            _database.Invoices.Add(invoiceDto);
             _database.SaveChanges();
-            return "success";
+            return invoiceDto.ID;
         }
     }
     #endregion
