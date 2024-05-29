@@ -12,6 +12,7 @@ public interface IInvoiceRepository
 {
     Task<string> CreateInvoice(Invoice invoice);
     Task CreateInvoiceMaterialCouple(int invoiceId, int materialId);
+    Task CreateInvoiceServiceActionCouple(int invoiceId, int serviceActionId);
     Task<List<Invoice>> GetInvoicesByFilter(
         int? id = null,
         int? customerId = null
@@ -23,6 +24,7 @@ public interface IInvoiceRepository
     Task<List<Material>> GetMaterialsByInvoiceId(int invoiceID);
     Task<List<ServiceAction>> GetServiceActionsByInvoiceId(int invoiceID);
     Task<InvoiceMaterialDTO?> GetInvoiceMaterialCouple(int invoiceId, int materialId);
+    Task<InvoiceServiceActionDTO?> GetInvoiceServiceActionCouple(int invoiceId, int serviceActionId);
 
     Task UpdateInvoice(int id,
         int? customerID = null,
@@ -35,4 +37,5 @@ public interface IInvoiceRepository
     );
     Task DeleteInvoice(int id);
     Task DeleteInvoiceMaterialCouple(int invoiceId, int materialId);
+    Task DeleteInvoiceServiceActionCouple(int invoiceId, int serviceActionId);
 }

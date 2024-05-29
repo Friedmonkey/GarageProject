@@ -1,4 +1,6 @@
-﻿using DatabaseLibrary.Models;
+﻿using DatabaseLibrary.Database.Materials;
+using DatabaseLibrary.Database.ServiceActions;
+using DatabaseLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -13,15 +15,21 @@ public class InvoiceRepository : IInvoiceRepository
 {
     //private readonly DatabaseContext _database;
     private readonly IDbContextFactory<DatabaseContext> _databaseFactory;
-    public InvoiceRepository(IDbContextFactory<DatabaseContext> dbFactory)
+    private readonly IMaterialRepository _materialRepository;
+    private readonly IServiceActionRepository _serviceActionRepository;
+
+
+    public InvoiceRepository(IDbContextFactory<DatabaseContext> dbFactory, IMaterialRepository materialRepository, IServiceActionRepository serviceActionRepository)
     {
         _databaseFactory = dbFactory;
+        _materialRepository = materialRepository;
+        _serviceActionRepository = serviceActionRepository;
     }
 
 
 
     #region Helpers
-    private async Task<Invoice> Resolve(InvoiceDTO entity)
+    private async Task<Invoice> ResolveInvoice(InvoiceDTO entity)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
@@ -30,7 +38,7 @@ public class InvoiceRepository : IInvoiceRepository
 
 
             var materials = await GetAllInvoiceMaterialCouple(entity.ID);
-            List<ServiceAction> serviceActions = await GetServiceActionsByInvoiceId(entity.ID);
+            List<InvoiceServiceAction> serviceActions = await GetServiceActionsByInvoiceId(entity.ID);
 
             return new Invoice()
             {
@@ -46,21 +54,37 @@ public class InvoiceRepository : IInvoiceRepository
         }
     }
 
+    private async Task<InvoiceMaterial> ResolveInvoiceMaterial(InvoiceMaterialDTO entity)
+    {
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            var invoiceDTO = await _database.Invoices.Where(i => i.ID == entity.InvoiceId).FirstOrDefaultAsync();
+            if (invoiceDTO == null)
+            {
+                return null;
+            }
+            var material = (await _materialRepository.GetMaterialsByFilter(id: entity.MaterialId)).FirstOrDefault();
+            if (material == null) 
+            {
+                return null;
+            }
 
+            return new InvoiceMaterial()
+            {
+                ID = entity.ID,
+                Invoice = await ResolveInvoice(invoiceDTO),
+                Material = material,
+                Amount = entity.Amount,
+            };
+        }
+    }
     private async Task<List<InvoiceMaterial>> ConvertInvoiceMaterialDTOToInvoiceMaterial(List<InvoiceMaterialDTO> invoiceMaterialDTOs)
     {
         List<InvoiceMaterial> returnList= new List<InvoiceMaterial>();
 
         foreach (var invoiceMaterialDTO in invoiceMaterialDTOs)
         {
-            var tempInvoiceMaterial = new InvoiceMaterial()
-            {
-                ID = invoiceMaterialDTO.ID,
-                Invoice = await GetInvoiceByFilter(invoiceMaterialDTO.InvoiceId),
-                Material = await GetMaterialsByInvoiceId(invoiceMaterialDTO.InvoiceId),
-                Amount = invoiceMaterialDTO.Amount,
-            };
-            returnList.Add(tempInvoiceMaterial);
+            returnList.Add(await ResolveInvoiceMaterial(invoiceMaterialDTO));
         }
         return returnList;
     }
@@ -104,6 +128,18 @@ public class InvoiceRepository : IInvoiceRepository
             await _database.SaveChangesAsync();
         }
     }
+    public async Task CreateInvoiceServiceActionCouple(int invoiceId, int serviceActionId)
+    {
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            await _database.InvoiceServiceActionCouples.AddAsync(new InvoiceServiceActionDTO()
+            {
+                InvoiceId = invoiceId,
+                ServiceActionId = serviceActionId
+            });
+            await _database.SaveChangesAsync();
+        }
+    }
     #endregion
     #region Read 
     public async Task<List<Invoice>> GetInvoicesByFilter(int? id = null, int? customerId = null)
@@ -119,7 +155,7 @@ public class InvoiceRepository : IInvoiceRepository
 
             foreach (var invoice in querry)
             {
-                var a = await Resolve(invoice);
+                var a = await ResolveInvoice(invoice);
                 if (a != null)
                     invoices.Add(a);
             }
@@ -159,11 +195,11 @@ public class InvoiceRepository : IInvoiceRepository
             return materials;
         }
     }
-    public async Task<List<ServiceAction>> GetServiceActionsByInvoiceId(int invoiceID)
+    public async Task<List<InvoiceServiceAction>> GetServiceActionsByInvoiceId(int invoiceID)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
-            List<ServiceAction> serviceActions = new List<ServiceAction>();
+            List<InvoiceServiceAction> serviceActions = new List<InvoiceServiceAction>();
 
             //get all tournament-account couple from the tournament id
             var couples = _database.InvoiceServiceActionCouples.Where(ta => ta.InvoiceId == invoiceID);
@@ -173,9 +209,15 @@ public class InvoiceRepository : IInvoiceRepository
                 foreach (var couple in couples)
                 {
                     //get the accociated useraccount from the couple we just got
-                    var serviceAction = _database.ServiceActions.FirstOrDefault(a => a.ID == couple.ServiceActionId);
-                    if (serviceAction != null)
-                        serviceActions.Add(serviceAction);
+                    var invoiceServiceActionDTO = _database.InvoiceServiceActionCouples.FirstOrDefault(a => a.ID == couple.ServiceActionId);
+                    if (invoiceServiceActionDTO != null)
+                    {
+                        InvoiceServiceAction serviceAction = new ServiceAction() 
+                        {
+                            Name = invoiceServiceAction.
+                        };
+                        serviceActions.Add(invoiceServiceAction);
+                    }
                 }
             }
 
