@@ -1,4 +1,5 @@
-﻿using DatabaseLibrary.Database.Materials;
+﻿using DatabaseLibrary.Database.InvoiceCouples;
+using DatabaseLibrary.Database.Materials;
 using DatabaseLibrary.Database.ServiceActions;
 using DatabaseLibrary.Models;
 using Microsoft.EntityFrameworkCore;
@@ -15,21 +16,18 @@ public class InvoiceRepository : IInvoiceRepository
 {
     //private readonly DatabaseContext _database;
     private readonly IDbContextFactory<DatabaseContext> _databaseFactory;
-    private readonly IMaterialRepository _materialRepository;
-    private readonly IServiceActionRepository _serviceActionRepository;
 
-
-    public InvoiceRepository(IDbContextFactory<DatabaseContext> dbFactory, IMaterialRepository materialRepository, IServiceActionRepository serviceActionRepository)
+    private readonly IInvoiceCoupleRepository _invoiceCoupleRepository;
+    public InvoiceRepository(IDbContextFactory<DatabaseContext> dbFactory, IInvoiceCoupleRepository invoiceCoupleRepository)
     {
         _databaseFactory = dbFactory;
-        _materialRepository = materialRepository;
-        _serviceActionRepository = serviceActionRepository;
+        _invoiceCoupleRepository = invoiceCoupleRepository;
     }
 
 
 
     #region Helpers
-    private async Task<Invoice> ResolveInvoice(InvoiceDTO entity)
+    private async Task<Invoice> Resolve(InvoiceDTO entity)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
@@ -37,8 +35,10 @@ public class InvoiceRepository : IInvoiceRepository
             if (customer == null) return null; //throw new Exception("customer not found!");
 
 
-            var materials = await GetAllInvoiceMaterialCouple(entity.ID);
-            List<InvoiceServiceAction> serviceActions = await GetServiceActionsByInvoiceId(entity.ID);
+            var materials = await _invoiceCoupleRepository.GetAllInvoiceMaterialCouple(entity.ID);
+            var serviceActions = await _invoiceCoupleRepository.GetAllInvoiceServiceActionCouple(entity.ID);
+
+            if (materials == null || serviceActions == null) return null;
 
             return new Invoice()
             {
@@ -52,41 +52,6 @@ public class InvoiceRepository : IInvoiceRepository
                 ServiceCost = entity.ServiceCost,
             };
         }
-    }
-
-    private async Task<InvoiceMaterial> ResolveInvoiceMaterial(InvoiceMaterialDTO entity)
-    {
-        using (var _database = _databaseFactory.CreateDbContext())
-        {
-            var invoiceDTO = await _database.Invoices.Where(i => i.ID == entity.InvoiceId).FirstOrDefaultAsync();
-            if (invoiceDTO == null)
-            {
-                return null;
-            }
-            var material = (await _materialRepository.GetMaterialsByFilter(id: entity.MaterialId)).FirstOrDefault();
-            if (material == null) 
-            {
-                return null;
-            }
-
-            return new InvoiceMaterial()
-            {
-                ID = entity.ID,
-                Invoice = await ResolveInvoice(invoiceDTO),
-                Material = material,
-                Amount = entity.Amount,
-            };
-        }
-    }
-    private async Task<List<InvoiceMaterial>> ConvertInvoiceMaterialDTOToInvoiceMaterial(List<InvoiceMaterialDTO> invoiceMaterialDTOs)
-    {
-        List<InvoiceMaterial> returnList= new List<InvoiceMaterial>();
-
-        foreach (var invoiceMaterialDTO in invoiceMaterialDTOs)
-        {
-            returnList.Add(await ResolveInvoiceMaterial(invoiceMaterialDTO));
-        }
-        return returnList;
     }
 
     private async Task<InvoiceDTO> Convert(Invoice entity)
@@ -116,30 +81,6 @@ public class InvoiceRepository : IInvoiceRepository
             return "success";
         }
     }
-    public async Task CreateInvoiceMaterialCouple(int invoiceId, int materialId)
-    {
-        using (var _database = _databaseFactory.CreateDbContext())
-        {
-            await _database.InvoiceMaterialCouples.AddAsync(new InvoiceMaterialDTO()
-            {
-                InvoiceId = invoiceId,
-                MaterialId = materialId
-            });
-            await _database.SaveChangesAsync();
-        }
-    }
-    public async Task CreateInvoiceServiceActionCouple(int invoiceId, int serviceActionId)
-    {
-        using (var _database = _databaseFactory.CreateDbContext())
-        {
-            await _database.InvoiceServiceActionCouples.AddAsync(new InvoiceServiceActionDTO()
-            {
-                InvoiceId = invoiceId,
-                ServiceActionId = serviceActionId
-            });
-            await _database.SaveChangesAsync();
-        }
-    }
     #endregion
     #region Read 
     public async Task<List<Invoice>> GetInvoicesByFilter(int? id = null, int? customerId = null)
@@ -155,7 +96,7 @@ public class InvoiceRepository : IInvoiceRepository
 
             foreach (var invoice in querry)
             {
-                var a = await ResolveInvoice(invoice);
+                var a = await Resolve(invoice);
                 if (a != null)
                     invoices.Add(a);
             }
@@ -164,92 +105,97 @@ public class InvoiceRepository : IInvoiceRepository
     }
     public async Task<Invoice?> GetInvoiceByFilter(int? id = null, int? customerId = null)
     {
-        var invoices = await GetInvoicesByFilter();
-        if (invoices == null) return null;
-
-        var invoice = invoices.FirstOrDefault();
-        if (invoice == null) return null;
-
-        return invoice;
-    }
-    public async Task<List<Material>> GetMaterialsByInvoiceId(int invoiceID)
-    {
         using (var _database = _databaseFactory.CreateDbContext())
         {
-            List<Material> materials = new List<Material>();
+            var invoiceDTO = (await _database.Invoices.Where(a =>
+                (id == null || a.ID == id) &&
+                (customerId == null || a.CustomerID == customerId)
+            ).FirstOrDefaultAsync());
 
-            //get all tournament-account couple from the tournament id
-            var couples = _database.InvoiceMaterialCouples.Where(ta => ta.InvoiceId == invoiceID);
+            if (invoiceDTO == null) return null;
 
-            if (couples != null)
-            {
-                foreach (var couple in couples)
-                {
-                    //get the accociated useraccount from the couple we just got
-                    var material = _database.Materials.FirstOrDefault(a => a.ID == couple.MaterialId);
-                    if (material != null)
-                        materials.Add(material);
-                }
-            }
 
-            return materials;
+            return await Resolve(invoiceDTO);
         }
     }
-    public async Task<List<InvoiceServiceAction>> GetServiceActionsByInvoiceId(int invoiceID)
-    {
-        using (var _database = _databaseFactory.CreateDbContext())
-        {
-            List<InvoiceServiceAction> serviceActions = new List<InvoiceServiceAction>();
+    //public async Task<List<Material>> GetMaterialsByInvoiceId(int invoiceID)
+    //{
+    //    using (var _database = _databaseFactory.CreateDbContext())
+    //    {
+    //        List<Material> materials = new List<Material>();
 
-            //get all tournament-account couple from the tournament id
-            var couples = _database.InvoiceServiceActionCouples.Where(ta => ta.InvoiceId == invoiceID);
+    //        //get all tournament-account couple from the tournament id
+    //        var couples = _database.InvoiceMaterialCouples.Where(ta => ta.InvoiceId == invoiceID);
 
-            if (couples != null)
-            {
-                foreach (var couple in couples)
-                {
-                    //get the accociated useraccount from the couple we just got
-                    var invoiceServiceActionDTO = _database.InvoiceServiceActionCouples.FirstOrDefault(a => a.ID == couple.ServiceActionId);
-                    if (invoiceServiceActionDTO != null)
-                    {
-                        InvoiceServiceAction serviceAction = new ServiceAction() 
-                        {
-                            Name = invoiceServiceAction.
-                        };
-                        serviceActions.Add(invoiceServiceAction);
-                    }
-                }
-            }
+    //        if (couples != null)
+    //        {
+    //            foreach (var couple in couples)
+    //            {
+    //                //get the accociated useraccount from the couple we just got
+    //                var material = _database.Materials.FirstOrDefault(a => a.ID == couple.MaterialId);
+    //                if (material != null)
+    //                    materials.Add(material);
+    //            }
+    //        }
 
-            return serviceActions;
-        }
-    }
-    public async Task<InvoiceMaterialDTO?> GetInvoiceMaterialCouple(int invoiceId, int materialId)
-    {
-        using (var _database = _databaseFactory.CreateDbContext())
-        {
-            var couple = await _database.InvoiceMaterialCouples.FirstOrDefaultAsync(im => im.InvoiceId == invoiceId && im.MaterialId == materialId);
-            if (couple != null)
-            {
-                return couple;
-            }
-            return null;
-        }
-    }
+    //        return materials;
+    //    }
+    //}
+    //public async Task<List<InvoiceServiceAction>> GetServiceActionsByInvoiceId(int invoiceID)
+    //{
+    //    using (var _database = _databaseFactory.CreateDbContext())
+    //    {
+    //        List<InvoiceServiceAction> serviceActions = new List<InvoiceServiceAction>();
 
-    public async Task<List<InvoiceMaterial>> GetAllInvoiceMaterialCouple(int invoiceId)
-    {
-        using (var _database = _databaseFactory.CreateDbContext())
-        {
-            var couple = await _database.InvoiceMaterialCouples.Where(im => im.InvoiceId == invoiceId).ToListAsync();
-            if (couple != null)
-            {
+    //        //get all tournament-account couple from the tournament id
+    //        var couples = _database.InvoiceServiceActionCouples.Where(ta => ta.InvoiceId == invoiceID);
 
-                return await ConvertInvoiceMaterialDTOToInvoiceMaterial(couple);
-            }
-            return null;
-        }
-    }
+    //        if (couples != null)
+    //        {
+    //            foreach (var couple in couples)
+    //            {
+    //                //get the accociated useraccount from the couple we just got
+    //                var invoiceServiceActionDTO = _database.InvoiceServiceActionCouples.FirstOrDefault(a => a.ID == couple.ServiceActionId);
+    //                if (invoiceServiceActionDTO != null)
+    //                {
+    //                    InvoiceServiceAction serviceAction = new ServiceAction() 
+    //                    {
+    //                        Name = invoiceServiceAction.
+    //                    };
+    //                    serviceActions.Add(invoiceServiceAction);
+    //                }
+    //            }
+    //        }
+
+    //        return serviceActions;
+    //    }
+    //}
+    //public async Task<InvoiceMaterialDTO?> GetInvoiceMaterialCouple(int invoiceId, int materialId)
+    //{
+    //    using (var _database = _databaseFactory.CreateDbContext())
+    //    {
+    //        var couple = await _database.InvoiceMaterialCouples.FirstOrDefaultAsync(im => im.InvoiceId == invoiceId && im.MaterialId == materialId);
+    //        if (couple != null)
+    //        {
+    //            return couple;
+    //        }
+    //        return null;
+    //    }
+    //}
+
+    //public async Task<List<InvoiceMaterial>> GetAllInvoiceMaterialCouple(int invoiceId)
+    //{
+    //    using (var _database = _databaseFactory.CreateDbContext())
+    //    {
+    //        var couple = await _database.InvoiceMaterialCouples.Where(im => im.InvoiceId == invoiceId).ToListAsync();
+    //        if (couple != null)
+    //        {
+
+    //            return await ConvertInvoiceMaterialDTOToInvoiceMaterial(couple);
+    //        }
+    //        return null;
+    //    }
+    //}
 
     #endregion
     #region Update 
@@ -284,18 +230,6 @@ public class InvoiceRepository : IInvoiceRepository
             var result = (await _database.Invoices.FirstOrDefaultAsync(a => a.ID == id));
             _database.Invoices.Remove(result);
             _database.SaveChanges();
-        }
-    }
-    public async Task DeleteInvoiceMaterialCouple(int invoiceId, int materialId)
-    {
-        using (var _database = _databaseFactory.CreateDbContext())
-        {
-            var couple = await GetInvoiceMaterialCouple(invoiceId, materialId);
-            if (couple != null)
-            {
-                _database.InvoiceMaterialCouples.Remove(couple);
-                await _database.SaveChangesAsync();
-            }
         }
     }
     #endregion
