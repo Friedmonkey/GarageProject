@@ -18,15 +18,13 @@ public class InvoiceCoupleRepository : IInvoiceCoupleRepository
 {
     //private readonly DatabaseContext _database;
     private readonly IDbContextFactory<DatabaseContext> _databaseFactory;
-    private readonly IInvoiceRepository _invoiceRepository;
     private readonly IMaterialRepository _materialRepository;
     private readonly IServiceActionRepository _serviceActionRepository;
 
 
 
-    public InvoiceCoupleRepository(IDbContextFactory<DatabaseContext> dbFactory, IInvoiceRepository invoiceRepository, IMaterialRepository materialRepository, IServiceActionRepository serviceActionRepository)
+    public InvoiceCoupleRepository(IDbContextFactory<DatabaseContext> dbFactory, IMaterialRepository materialRepository, IServiceActionRepository serviceActionRepository)
     {
-        _invoiceRepository = invoiceRepository;
         _databaseFactory = dbFactory;
         _materialRepository = materialRepository;
         _serviceActionRepository = serviceActionRepository;
@@ -37,13 +35,14 @@ public class InvoiceCoupleRepository : IInvoiceCoupleRepository
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
-            var invoiceDTO = await _database.Invoices.Where(i => i.ID == entity.InvoiceId).FirstOrDefaultAsync();
-            if (invoiceDTO == null)
+            var material = (await _materialRepository.GetMaterialsByFilter(id: entity.MaterialId)).FirstOrDefault();
+            if (material == null)
             {
                 return null;
             }
-            var material = (await _materialRepository.GetMaterialsByFilter(id: entity.MaterialId)).FirstOrDefault();
-            if (material == null)
+
+            var invoiceDTO = await _database.Invoices.FirstOrDefaultAsync(i => i.ID == entity.InvoiceId);
+            if (invoiceDTO == null)
             {
                 return null;
             }
@@ -51,7 +50,7 @@ public class InvoiceCoupleRepository : IInvoiceCoupleRepository
             return new InvoiceMaterial()
             {
                 ID = entity.ID,
-                Invoice = await _invoiceRepository.GetInvoiceByFilter(id:entity.InvoiceId),
+                Invoice = await ResolveInvoice(invoiceDTO),
                 Material = material,
                 Amount = entity.Amount,
             };
@@ -80,6 +79,32 @@ public class InvoiceCoupleRepository : IInvoiceCoupleRepository
                 Hours = entity.Hour,
                 Name = serviceAction.Name,
                 Cost = serviceAction.Cost,
+            };
+        }
+    }
+    private async Task<Invoice> ResolveInvoice(InvoiceDTO entity)
+    {
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            UserAccount? customer = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.CustomerID);
+            if (customer == null) return null; //throw new Exception("customer not found!");
+
+
+            var materials = await GetAllInvoiceMaterialCouple(entity.ID);
+            var serviceActions = await GetAllInvoiceServiceActionCouple(entity.ID);
+
+            if (materials == null || serviceActions == null) return null;
+
+            return new Invoice()
+            {
+                ID = entity.ID,
+                Date = entity.Date,
+                AppointmentCost = entity.AppointmentCost,
+                Brand = entity.Brand,
+                Customer = customer,
+                Materials = materials,
+                ServiceActions = serviceActions,
+                ServiceCost = entity.ServiceCost,
             };
         }
     }

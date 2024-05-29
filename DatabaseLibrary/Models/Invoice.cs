@@ -9,6 +9,7 @@ namespace DatabaseLibrary.Models;
 
 public class Invoice
 {
+    public Invoice() { } 
     public Invoice(UserAccount customer) 
     {
         Customer = customer;
