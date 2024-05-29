@@ -11,8 +11,8 @@ namespace DatabaseLibrary.Database.Invoices;
 public interface IInvoiceRepository
 {
     Task<string> CreateInvoice(Invoice invoice);
-    Task CreateInvoiceMaterialCouple(int invoiceId, int materialId);
-    Task CreateInvoiceServiceActionCouple(int invoiceId, int serviceActionId);
+    Task CreateInvoiceMaterialCouple(int invoiceId, int materialId, float amount);
+    Task CreateInvoiceServiceActionCouple(int invoiceId, int serviceActionId, float Amount);
     Task<List<Invoice>> GetInvoicesByFilter(
         int? id = null,
         int? customerId = null
@@ -21,21 +21,19 @@ public interface IInvoiceRepository
         int? id = null,
         int? customerId = null
     );
-    Task<List<Material>> GetMaterialsByInvoiceId(int invoiceID);
-    Task<List<ServiceAction>> GetServiceActionsByInvoiceId(int invoiceID);
+    //Task<List<InvoiceMaterial>> GetMaterialsByInvoiceId(int invoiceID);
+    Task<List<InvoiceServiceAction>> GetServiceActionsByInvoiceId(int invoiceID);
     Task<InvoiceMaterialDTO?> GetInvoiceMaterialCouple(int invoiceId, int materialId);
-    Task<InvoiceServiceActionDTO?> GetInvoiceServiceActionCouple(int invoiceId, int serviceActionId);
+    //Task<InvoiceServiceActionDTO?> GetInvoiceServiceActionCouple(int invoiceId, int serviceActionId);
 
     Task UpdateInvoice(int id,
         int? customerID = null,
         DateTime? date = null,
-        List<InvoiceMaterial>? invoiceMaterials = null,
-        List<InvoiceServiceAction>? serviceActions= null,
         float? serviceCost = null,
         float? AppointmentCost = null,
         string? brand = null
     );
     Task DeleteInvoice(int id);
     Task DeleteInvoiceMaterialCouple(int invoiceId, int materialId);
-    Task DeleteInvoiceServiceActionCouple(int invoiceId, int serviceActionId);
+    //Task DeleteInvoiceServiceActionCouple(int invoiceId, int serviceActionId);
 }

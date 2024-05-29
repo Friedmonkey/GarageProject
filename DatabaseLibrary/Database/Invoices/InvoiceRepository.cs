@@ -116,26 +116,29 @@ public class InvoiceRepository : IInvoiceRepository
             return "success";
         }
     }
-    public async Task CreateInvoiceMaterialCouple(int invoiceId, int materialId)
+    public async Task CreateInvoiceMaterialCouple(int invoiceId, int materialId, float amount)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
             await _database.InvoiceMaterialCouples.AddAsync(new InvoiceMaterialDTO()
             {
                 InvoiceId = invoiceId,
-                MaterialId = materialId
+                MaterialId = materialId,
+                Amount = amount
+                
             });
             await _database.SaveChangesAsync();
         }
     }
-    public async Task CreateInvoiceServiceActionCouple(int invoiceId, int serviceActionId)
+    public async Task CreateInvoiceServiceActionCouple(int invoiceId, int serviceActionId, float Amount)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
             await _database.InvoiceServiceActionCouples.AddAsync(new InvoiceServiceActionDTO()
             {
                 InvoiceId = invoiceId,
-                ServiceActionId = serviceActionId
+                ServiceActionId = serviceActionId,
+                Hour = Amount
             });
             await _database.SaveChangesAsync();
         }
@@ -212,15 +215,16 @@ public class InvoiceRepository : IInvoiceRepository
                     var invoiceServiceActionDTO = _database.InvoiceServiceActionCouples.FirstOrDefault(a => a.ID == couple.ServiceActionId);
                     if (invoiceServiceActionDTO != null)
                     {
-                        InvoiceServiceAction serviceAction = new ServiceAction() 
+                        var serviceAction = await _database.ServiceActions.FirstOrDefaultAsync(s => s.ID == invoiceServiceActionDTO.ServiceActionId);
+                        if (serviceAction == null) { throw new ArgumentNullException("ServiceActions was null"); }
+                        InvoiceServiceAction invoiceServiceAction = new InvoiceServiceAction() 
                         {
-                            Name = invoiceServiceAction.
+                           ServiceAction = serviceAction
                         };
                         serviceActions.Add(invoiceServiceAction);
                     }
                 }
             }
-
             return serviceActions;
         }
     }
@@ -229,6 +233,18 @@ public class InvoiceRepository : IInvoiceRepository
         using (var _database = _databaseFactory.CreateDbContext())
         {
             var couple = await _database.InvoiceMaterialCouples.FirstOrDefaultAsync(im => im.InvoiceId == invoiceId && im.MaterialId == materialId);
+            if (couple != null)
+            {
+                return couple;
+            }
+            return null;
+        }
+    }
+    public async Task<InvoiceServiceActionDTO?> GetInvoiceServiceActionCouple(int invoiceId, int serviceActionId)
+    {
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            var couple = await _database.InvoiceServiceActionCouples.FirstOrDefaultAsync(im => im.InvoiceId == invoiceId && im.ServiceActionId == serviceActionId);
             if (couple != null)
             {
                 return couple;
@@ -294,6 +310,19 @@ public class InvoiceRepository : IInvoiceRepository
             if (couple != null)
             {
                 _database.InvoiceMaterialCouples.Remove(couple);
+                await _database.SaveChangesAsync();
+            }
+        }
+    }
+
+    public async Task DeleteInvoiceServiceActionCouple(int invoiceId, int serviceActionId)
+    {
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            var couple = await GetInvoiceServiceActionCouple(invoiceId, serviceActionId);
+            if (couple != null)
+            {
+                _database.InvoiceServiceActionCouples.Remove(couple);
                 await _database.SaveChangesAsync();
             }
         }
