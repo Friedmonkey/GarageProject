@@ -19,7 +19,7 @@ public class Invoice
     public DateTime Date { get; set; }
     public float ServiceCost { get; set; }
     public float AppointmentCost { get; set; }
-    public string Brand { get; set; }
+    public string Brand { get; set; } = "IDK";
     public List<InvoiceMaterial> Materials { get; set; }
     public List<InvoiceServiceAction> ServiceActions { get; set; }
     
