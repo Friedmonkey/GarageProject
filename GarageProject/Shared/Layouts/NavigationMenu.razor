@@ -15,6 +15,7 @@
         }
         @if (User.Role is UserAccount.Admin or UserAccount.User)
         {
+            <MudNavLink Href="AppointmentProgress" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.CarCrash"><p class="menu-wrapper">Appointment Progress</p></MudNavLink>
             <MudNavLink Href="RequestAppointment" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.CalendarToday"><p class="menu-wrapper">Create Appointment</p></MudNavLink>
         }
         @if (User.Role is UserAccount.Admin or UserAccount.Secretary)

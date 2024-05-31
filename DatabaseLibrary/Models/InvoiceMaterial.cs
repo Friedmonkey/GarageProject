@@ -10,7 +10,7 @@ namespace DatabaseLibrary.Models;
 public class InvoiceMaterial : IInvoiceAssigned
 {
     public int ID { get; set; }
-    public Invoice Invoice { get; set; }
+    public int InvoiceId { get; set; }
     public Material Material { get; set; }
     public float Amount { get; set; }
     public string Name { get => Material.Name; set => Material.Name = value; }

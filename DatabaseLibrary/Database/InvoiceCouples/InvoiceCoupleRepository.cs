@@ -50,7 +50,7 @@ public class InvoiceCoupleRepository : IInvoiceCoupleRepository
             return new InvoiceMaterial()
             {
                 ID = entity.ID,
-                Invoice = await ResolveInvoice(invoiceDTO),
+                InvoiceId = invoiceDTO.ID,
                 Material = material,
                 Amount = entity.Amount,
             };
@@ -82,32 +82,32 @@ public class InvoiceCoupleRepository : IInvoiceCoupleRepository
             };
         }
     }
-    private async Task<Invoice> ResolveInvoice(InvoiceDTO entity)
-    {
-        using (var _database = _databaseFactory.CreateDbContext())
-        {
-            UserAccount? customer = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.CustomerID);
-            if (customer == null) return null; //throw new Exception("customer not found!");
+    //private async Task<Invoice> ResolveInvoice(InvoiceDTO entity)
+    //{
+    //    using (var _database = _databaseFactory.CreateDbContext())
+    //    {
+    //        UserAccount? customer = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.CustomerID);
+    //        if (customer == null) return null; //throw new Exception("customer not found!");
 
 
-            var materials = await GetAllInvoiceMaterialCouple(entity.ID);
-            var serviceActions = await GetAllInvoiceServiceActionCouple(entity.ID);
+    //        var materials = await GetAllInvoiceMaterialCouple(entity.ID);
+    //        var serviceActions = await GetAllInvoiceServiceActionCouple(entity.ID);
 
-            if (materials == null || serviceActions == null) return null;
+    //        if (materials == null || serviceActions == null) return null;
 
-            return new Invoice()
-            {
-                ID = entity.ID,
-                Date = entity.Date,
-                AppointmentCost = entity.AppointmentCost,
-                Brand = entity.Brand,
-                Customer = customer,
-                Materials = materials,
-                ServiceActions = serviceActions,
-                ServiceCost = entity.ServiceCost,
-            };
-        }
-    }
+    //        return new Invoice()
+    //        {
+    //            ID = entity.ID,
+    //            Date = entity.Date,
+    //            AppointmentCost = entity.AppointmentCost,
+    //            Brand = entity.Brand,
+    //            Customer = customer,
+    //            Materials = materials,
+    //            ServiceActions = serviceActions,
+    //            ServiceCost = entity.ServiceCost,
+    //        };
+    //    }
+    //}
     #endregion
 
 

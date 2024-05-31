@@ -1,0 +1,77 @@
+﻿@page "/AppointmentProgress"
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor.Extensions;
+@using System.Security.Claims;
+@using DatabaseLibrary.Database.Appointments;
+
+@inject IUserRepository userRepository;
+@inject IAppointmentRepository appointmentRepository;
+@inject AuthenticationStateProvider authProvider;
+@inject ISnackbar snackBar;
+@inject IDialogService DialogService;
+
+@implements IDisposable;
+
+<MudExtensions.MudLoading Loading="!loaded || isBusy" Overlap="true" Text="Loading...">
+    @if (Appointments.Count() == 0)
+    {
+        <MudText Typo="Typo.h2">No appointments yet!</MudText>
+    }
+    <div class="d-flex flex-row gap-2">
+        @foreach (var appointment in Appointments)
+        {
+            <MudCard Elevation="3">
+                <MudCardHeader>
+                    <MudText>Appointment for @appointment.AppointmentCreator.FullName</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>@appointment.PlannedDate.ToLongDateString()</MudText>
+                    <MudTextField ReadOnly="true" Lines="2" AutoGrow="true" Value="@appointment.Description" Label="Description" />
+                    <MudText>Appointment status: @appointment.Status</MudText>
+                </MudCardContent>
+            </MudCard>
+        }
+    </div>
+</MudExtensions.MudLoading>    
+
+@code {
+    private List<Appointment> Appointments = new List<Appointment>();
+    private List<UserAccount> Mechanics = new List<UserAccount>();
+    private Dictionary<int, List<Appointment>> MechanicAppointments = new Dictionary<int, List<Appointment>>();
+
+    public UserAccount Profile { get; set; } = null;
+    private bool loaded;
+    private bool isBusy = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authProvider.GetAuthenticationStateAsync();
+        var claims = authState.User.Claims;
+        if (claims != null && claims.Count() > 0 && !loaded)
+        {
+            var sidClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid);
+            int? userId = ParsingExtention.IntTryParse(sidClaim.Value);
+            if (userId != null)
+            {
+                Profile = (await userRepository.GetUsersByFilter(id: (int)userId)).FirstOrDefault();
+                if (Profile != null && Profile.Role is UserAccount.Admin or UserAccount.User)
+                {
+                    await LoadAppointments();
+                    loaded = true;
+                    StateHasChanged();
+                }
+            }
+        }
+    }
+
+    private async Task LoadAppointments()
+    {
+        Appointments = (await appointmentRepository.GetAppointmentsByFilter(creatorId: Profile.ID));
+        Appointments = Appointments.OrderBy(a => a.CreationDate).ToList();
+    }
+
+    public void Dispose()
+    {
+        loaded = false;
+    }
+}
