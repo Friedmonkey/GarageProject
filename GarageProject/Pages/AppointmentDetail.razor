@@ -19,6 +19,7 @@
 @using DatabaseLibrary.Database.InvoiceCouples;
 
 <PageTitle>Appointment Detail</PageTitle>
+<MudText Class="w100">Appointment Detail</MudText>
 
 @if(Appointment == null || !Loaded)
 {
@@ -26,53 +27,77 @@
 }
 else
 {
-        <AuthorizeView Roles="@($"{UserAccount.Admin},{UserAccount.Secretary},{UserAccount.Mechanic}")">
+        <AuthorizeView Context="AuthContext" Roles="@($"{UserAccount.Admin},{UserAccount.Secretary},{UserAccount.Mechanic}")">
             <Authorized>
-                <div Class="gap-4 d-flex flex-wrap">
-                        <MudText Class="w100">Appointment Detail</MudText>
+                <div class="d-flex flex-row justify-center w100">
+                    <div class="d-flex flex-column gap-5 w100 justify-center">
                         @if(Materials != null)
                         {
-                            <MudSelect T="Material" @bind-Value="@SelectedMaterial" Class="w50" Text="Material" Label="Material" AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var item in Materials)
-                                {
-                                    <MudSelectItem Value="@item">
-                                        <p>@item.Name</p>
-                                    </MudSelectItem>
-                                }
-                            </MudSelect>
-                            <MudButton OnClick="() => AddMaterialToInvoice(SelectedMaterial,AmountOfMaterials)">+</MudButton>
+                            <div class="d-flex flex-column w100">
+                                <MudSelect T="Material" @bind-Value="@SelectedMaterial" Class="w50" Text="Material" Label="Material" AnchorOrigin="Origin.BottomCenter">
+                                    @foreach (var item in Materials)
+                                    {
+                                        <MudSelectItem Value="@item">
+                                            <p>@item.Name</p>
+                                        </MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudNumericField @bind-Value="AmountOfMaterials" />
+                                <MudButton Class="ma-2" Color="Color.Success" Variant="Variant.Filled" OnClick="() => AddMaterialToInvoice(SelectedMaterial,AmountOfMaterials)">+</MudButton>
+                            </div>
                         }
+                        <MudPaper Class="w100">
+                            <MudText>List of Materials</MudText>
+                            <MudTable Items="@Appointment.Invoice.Materials" Hover="false" Striped="true" Bordered="true" Class="mb-6">
+                                <HeaderContent>
+                                    <MudTh>Name</MudTh>
+                                    <MudTh>Price per material</MudTh>
+                                    <MudTh>Amount</MudTh>
+                                    <MudTh>Delete</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd>@context.Name</MudTd>
+                                    <MudTd>@context.Cost</MudTd>
+                                    <MudTd>@context.Amount</MudTd>
+                                    <MudIcon Icon="@Icons.Material.Outlined.Delete" @onclick="@( async() => await RemoveItem(context))" Color="Color.Error" Size="Size.Small" Class="ma-4" />
+                                </RowTemplate>
+                            </MudTable>
+                        </MudPaper>
+                    </div>
+                    <div class="d-flex flex-column gap-5 w100 justify-center">
                         @if (ServiceActions != null)
-                        {
-                            <MudSelect T="ServiceAction" @bind-Value="@SelectedServiceAction" Class="w50" Text="Service Action" Label="Service Action" AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var item in ServiceActions)
-                                {
-                                    <MudSelectItem Value="@item">
-                                        <p>@item.Name </p>
-                                    </MudSelectItem>
-                                }
-                            </MudSelect>
-                            <MudButton OnClick="() => AddServiceActionToInvoice(SelectedServiceAction, AmountOfServiceAction)">+</MudButton>
+                        {   
+                            <div class="d-flex flex-column w100">
+                                <MudSelect T="ServiceAction" @bind-Value="@SelectedServiceAction" Class="w50" Text="Service Action" Label="Service Action" AnchorOrigin="Origin.BottomCenter">
+                                    @foreach (var item in ServiceActions)
+                                    {
+                                        <MudSelectItem Value="@item">
+                                            <p>@item.Name </p>
+                                        </MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudNumericField @bind-Value="AmountOfServiceAction" />
+                                <MudButton Class="ma-2" Color="Color.Success" Variant="Variant.Filled" OnClick="() => AddServiceActionToInvoice(SelectedServiceAction, AmountOfServiceAction)">+</MudButton>
+                            </div>
                         }
-                </div>
-                <div Class="gap-2 d-flex flex-wrap">
-                    <MudPaper Class="w40">
-                        <MudText>List of ServiceAction</MudText>
-                        <MudTable Items="@Appointment.Invoice.ServiceActions" Hover="false" Dense="true" Striped="true" Bordered="true" Class="mb-6">
-                            <HeaderContent>
-                                <MudTh>Name</MudTh>
-                                <MudTh>Price per hour</MudTh>
-                                <MudTh>Amount of Hours</MudTh>
-                                <MudTh>Delete</MudTh>
-                            </HeaderContent>
-                                <RowTemplate Context="serviceAction">
-                                <MudTd>@serviceAction.ServiceAction.Name</MudTd>
-                                <MudTd>@serviceAction.ServiceAction.HourPrice</MudTd>
-                                <MudTd>@AmountOfMaterials</MudTd>
-                                <MudIcon Icon="@Icons.Material.Outlined.Delete" @onclick="@( async() => await RemoveItem(serviceAction))" Color="Color.Error" Size="Size.Small" Class="ma-4" />
-                            </RowTemplate>
-                        </MudTable>
-                    </MudPaper>
+                        <MudPaper Class="w100">
+                            <MudText>List of ServiceAction</MudText>
+                            <MudTable Items="@Appointment.Invoice.ServiceActions" Hover="false" Striped="true" Bordered="true" Class="mb-6">
+                                <HeaderContent>
+                                    <MudTh>Name</MudTh>
+                                    <MudTh>Price per hour</MudTh>
+                                    <MudTh>Amount of Hours</MudTh>
+                                    <MudTh>Delete</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd>@context.Name</MudTd>
+                                    <MudTd>@context.Cost</MudTd>
+                                    <MudTd>@context.Hours</MudTd>
+                                    <MudIcon Icon="@Icons.Material.Outlined.Delete" @onclick="@( async() => await RemoveItem(context))" Color="Color.Error" Size="Size.Small" Class="ma-4" />
+                                </RowTemplate>
+                            </MudTable>
+                        </MudPaper>
+                    </div>
                 </div>
                 <div>
                     @if (Appointment?.Invoice?.ServiceActions != null && Appointment?.Invoice?.Materials != null)
