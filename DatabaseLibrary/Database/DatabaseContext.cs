@@ -1,4 +1,5 @@
-﻿using DatabaseLibrary.Database.Invoices;
+﻿using DatabaseLibrary.Database.Apointments;
+using DatabaseLibrary.Database.Invoices;
 using DatabaseLibrary.Database.Reviews;
 using DatabaseLibrary.Models;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,7 @@ public class DatabaseContext : DbContext
     public DbSet<InvoiceDTO> Invoices { get; set; }
     public DbSet<InvoiceMaterialDTO> InvoiceMaterialCouples { get; set; }
     public DbSet<InvoiceServiceActionDTO> InvoiceServiceActionCouples { get; set; }
+    public DbSet<AppointmentServiceAction> AppointmentServiceActionCouples { get; set; }
 
     public DbSet<Material> Materials { get; set; }
     public DbSet<ServiceAction> ServiceActions { get; set; }

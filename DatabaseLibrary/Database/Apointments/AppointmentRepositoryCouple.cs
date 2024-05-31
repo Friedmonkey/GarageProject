@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace DatabaseLibrary.Database.Appointments
 {
-    public class AppointmentRepository : IAppointmentRepository
+    public class AppointmentRepositoryCouple : IAppointmentRepository
     {
         //private readonly DatabaseContext _database;
         private readonly IDbContextFactory<DatabaseContext> _databaseFactory;
         private readonly IInvoiceRepository _invoiceRepository;
-        public AppointmentRepository(IDbContextFactory<DatabaseContext> dbFactory, IInvoiceRepository invoiceRepository)
+        public AppointmentRepositoryCouple(IDbContextFactory<DatabaseContext> dbFactory, IInvoiceRepository invoiceRepository)
         {
             _databaseFactory = dbFactory;
             this._invoiceRepository = invoiceRepository;
