@@ -13,6 +13,7 @@ public enum Status
     Aproved, //the appointment has been aproved
     InProgress, //the appointment is in progress
     MechanicFixed, //the appointment has been done on the mechanic's side, and its back for the HR to double check and finish
+    AwaitingPayment, // the appointment is done but the user still has to pay
     Completed, // the appointment is fully completed
 
 

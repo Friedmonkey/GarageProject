@@ -9,6 +9,7 @@
 @inject AuthenticationStateProvider authProvider;
 @inject ISnackbar snackBar;
 @inject IDialogService DialogService;
+@inject NavigationManager navManager;
 
 @implements IDisposable;
 
@@ -28,6 +29,10 @@
                     <MudText>@appointment.PlannedDate.ToLongDateString()</MudText>
                     <MudTextField ReadOnly="true" Lines="2" AutoGrow="true" Value="@appointment.Description" Label="Description" />
                     <MudText>Appointment status: @appointment.Status</MudText>
+                    @if (appointment.Status == Status.AwaitingPayment)
+                    {
+                        <MudButton OnClick="async () => await PayAppointment(appointment)" Color="Color.Success" Variant="Variant.Filled">Pay</MudButton>
+                    }
                 </MudCardContent>
             </MudCard>
         }
@@ -62,6 +67,15 @@
                 }
             }
         }
+    }
+
+    private async Task PayAppointment(Appointment appointment)
+    {
+        await appointmentRepository.UpdateAppointment(id: appointment.ID, status: Status.Completed);
+        appointment.Status = Status.Completed;  
+        StateHasChanged();
+        snackBar.Add("Appointment has been payed!", Severity.Success);
+        //navManager.NavigateTo($"/AppointmentProgress", true);
     }
 
     private async Task LoadAppointments()
