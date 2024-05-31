@@ -25,6 +25,10 @@
 {
     <Auth />
 }
+else if (isBusy)
+{
+    <p>Getting the latest data for you, please wait</p>
+}
 else
 {
         <AuthorizeView Context="AuthContext" Roles="@($"{UserAccount.Admin},{UserAccount.Secretary},{UserAccount.Mechanic}")">
@@ -123,6 +127,7 @@ else
     public UserAccount? User { get; set; }
 
     private bool Loaded = false;
+    private bool isBusy = false;
 
 
     // these get resolved on start
@@ -147,12 +152,22 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Loaded = false;
         Appointment = (await appointmentRepository.GetAppointmentsByFilter(id:Id)).ToList().FirstOrDefault();
         Materials = (await materialRepository.GetMaterialsByFilter()).ToList();
         ServiceActions = (await serviceActionRepository.GetServiceActionsByFilter()).ToList();
         Loaded = true;
         StateHasChanged();
         //invoice = (await invoiceRepository.GetInvoiceByFilter(appointment.Invoice.ID));
+    }
+
+    private async Task LoadData()
+    {
+        isBusy = true;
+        StateHasChanged();
+        Appointment = (await appointmentRepository.GetAppointmentsByFilter(id: Id)).ToList().FirstOrDefault();
+        isBusy = false;
+        StateHasChanged();
     }
 
     private async Task AddMaterialToInvoice(Material material, float amount)
@@ -162,7 +177,13 @@ else
             throw new ArgumentNullException("Material was null");
         }
         await invoiceCoupleRepository.CreateInvoiceMaterialCouple(Appointment.Invoice.ID, material.ID, amount);
-
+        //     Appointment.Invoice.Materials.Add(new InvoiceMaterial()
+        //         {
+        //             ServiceAction = serviceAction,
+        //             Hours = AmoutOfHours,
+        //         }
+        // );
+        await LoadData();
 
 
         // bool contains = true;
@@ -197,6 +218,12 @@ else
             throw new ArgumentNullException("ServiceAction was null");
         }
         await invoiceCoupleRepository.CreateInvoiceServiceActionCouple(Appointment.Invoice.ID, serviceAction.ID, AmoutOfHours);
+        // Appointment.Invoice.ServiceActions.Add(new InvoiceServiceAction() {
+        //         ServiceAction = serviceAction,
+        //         Hours = AmoutOfHours,
+        //     }
+        // );
+        await LoadData();
         // InvoiceServiceAction tempIM = new InvoiceServiceAction();
         // if (SelectedServiceAction != null && AmoutOfHours != null)
         // {
@@ -242,7 +269,7 @@ else
         if (!result.Canceled)
         {
             await invoiceCoupleRepository.DeleteInvoiceMaterialCouple(invoiceAssigned.ID);
-            StateHasChanged();
+            LoadData();
         }
 
 
