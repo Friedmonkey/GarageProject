@@ -1,4 +1,5 @@
 ﻿using Bogus.DataSets;
+using DatabaseLibrary.Database.AppointmentCouples;
 using DatabaseLibrary.Database.Invoices;
 using DatabaseLibrary.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,15 +12,17 @@ using System.Threading.Tasks;
 
 namespace DatabaseLibrary.Database.Appointments
 {
-    public class AppointmentRepositoryCouple : IAppointmentRepository
+    public class AppointmentRepository : IAppointmentRepository
     {
         //private readonly DatabaseContext _database;
         private readonly IDbContextFactory<DatabaseContext> _databaseFactory;
         private readonly IInvoiceRepository _invoiceRepository;
-        public AppointmentRepositoryCouple(IDbContextFactory<DatabaseContext> dbFactory, IInvoiceRepository invoiceRepository)
+        private readonly IAppointmentCoupleRepository _appointmentCoupleRepository;
+        public AppointmentRepository(IDbContextFactory<DatabaseContext> dbFactory, IInvoiceRepository invoiceRepository, IAppointmentCoupleRepository appointmentCoupleRepository)
         {
             _databaseFactory = dbFactory;
             this._invoiceRepository = invoiceRepository;
+            this._appointmentCoupleRepository = appointmentCoupleRepository;
         }
 
         #region Helpers
@@ -35,6 +38,11 @@ namespace DatabaseLibrary.Database.Appointments
 
                 UserAccount? mechanicAssigned = await _database.Users.FirstOrDefaultAsync(u => u.ID == entity.MechanicAssignedID);
 
+                var appointmentServiceActionCouple = await _appointmentCoupleRepository.GetAllAppointmentServiceActionCouple(entity.ID);
+                var defaultActions = appointmentServiceActionCouple.Select(asa => asa.ServiceAction).ToList();
+
+
+
                 return new Appointment()
                 {
                     ID = entity.ID,
@@ -45,6 +53,7 @@ namespace DatabaseLibrary.Database.Appointments
                     Invoice = invoice,
                     MechanicAssigned = mechanicAssigned,
                     SecreteryNote = entity.SecreteryNote,
+                    DefaultActions = defaultActions,
                     Status = entity.Status
                 };
             }
@@ -85,6 +94,12 @@ namespace DatabaseLibrary.Database.Appointments
                 appointmentDTO.InvoiceID = id;
 
                 _database.Appointments.Add(appointmentDTO);
+
+                foreach (var item in Appointment.DefaultActions)
+                {
+                    await _appointmentCoupleRepository.CreateAppointmentServiceActionCouple(appointmentDTO.ID, item.ID);
+                }
+
                 _database.SaveChanges();
                 return "success";
                 //}

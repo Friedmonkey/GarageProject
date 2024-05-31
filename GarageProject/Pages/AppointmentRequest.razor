@@ -2,9 +2,13 @@
 @using MudBlazor.Extensions;
 @using System.Security.Claims;
 @using DatabaseLibrary.Database.Appointments;
+@using DatabaseLibrary.Database.ServiceActions;
+@using DatabaseLibrary.Database.AppointmentCouples;
 
 @inject IUserRepository userRepository;
 @inject IAppointmentRepository appointmentRepository;
+@inject IServiceActionRepository serviceActionRepository;
+@inject IAppointmentCoupleRepository appointmentCoupleRepository;
 @inject AuthenticationStateProvider authProvider;
 @inject ISnackbar snackBar;
 
@@ -16,6 +20,22 @@
         </MudCardHeader>
         <MudCardContent>
             <MudDatePicker Adornment="Adornment.Start" AdornmentColor="Color.Info" IsDateDisabledFunc="IsDateDisabled" Label="Starting date" Editable="true" @bind-Date="PlannedDate" />
+            <MudText>Default actions</MudText>
+            <MudChipSet AllClosable="true" OnClose="Closed">
+                @foreach (var item in CurrentAppointent.DefaultActions)
+                {
+                    <MudChip Value="item" Text="@item.Name" />
+                }
+            </MudChipSet>
+            <MudSelect T="ServiceAction" @bind-Value="NewChip">
+                @foreach (var item in AllServiceActions)
+                {
+                    <MudSelectItem T="ServiceAction" Value="item">
+                        @item.Name
+                    </MudSelectItem>
+                }
+            </MudSelect>
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="async () => await AddServiceAction()">Add ServiceAction</MudButton>
 
             <MudTextField Lines="2" AutoGrow="true" @bind-Value="CurrentAppointent.Description" Label="Enlighten the problem you are having" />
         </MudCardContent>
@@ -28,6 +48,9 @@
 @code {
     public Appointment? CurrentAppointent { get; set; } = null;  
     public UserAccount Profile { get; set; } = null;
+
+    public List<ServiceAction> AllServiceActions;
+    private ServiceAction NewChip;
     private bool loaded;
     private DateTime? PlannedDate = null;
     private List<DateTime> ExistingAppointments = new List<DateTime>();
@@ -47,6 +70,7 @@
                 if (Profile != null)
                 {
                     mechanicCount = (await userRepository.GetUsersByFilter(role: UserAccount.Mechanic)).Count();
+                    AllServiceActions = await serviceActionRepository.GetAllServiceActions(); 
                     await LoadAppointment();
                     loaded = true;
                     StateHasChanged();
@@ -55,6 +79,23 @@
         }
 
     }
+
+    public void Closed(MudChip chip)
+    {
+        ServiceAction OldChip = ((ServiceAction)chip.Value);
+        CurrentAppointent.DefaultActions.Remove(OldChip);
+    }
+    private async Task AddServiceAction()
+    {
+        if (NewChip == null)
+        {
+            snackBar.Add("Please select a service action to add", Severity.Warning);
+            return;
+        }
+        CurrentAppointent.DefaultActions.Add(NewChip);
+        NewChip = null;
+    }
+
     private async Task LoadAppointment()
     {
         PlannedDate = null;

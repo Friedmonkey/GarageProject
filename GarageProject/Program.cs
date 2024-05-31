@@ -75,9 +75,9 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
 builder.Services.AddScoped<IServiceActionRepository, ServiceActionRepository>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-builder.Services.AddScoped<IInvoiceCoupleRepository, IInvoiceCoupleRepository>();
+builder.Services.AddScoped<IInvoiceCoupleRepository, InvoiceCoupleRepository>();
 builder.Services.AddScoped<IAppointmentCoupleRepository, AppointmentCoupleRepository>();
-builder.Services.AddScoped<IAppointmentRepository, AppointmentRepositoryCouple>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
 
 builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();

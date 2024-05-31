@@ -19,6 +19,6 @@ public class Appointment
     public string Description { get; set; }
     public Invoice Invoice { get; set; }
     public UserAccount? MechanicAssigned { get; set; }
-    public List<ServiceAction> DefaultActions { get; set; }
+    public List<ServiceAction> DefaultActions { get; set; } = new List<ServiceAction>();
     public string SecreteryNote { get; set; }
 }

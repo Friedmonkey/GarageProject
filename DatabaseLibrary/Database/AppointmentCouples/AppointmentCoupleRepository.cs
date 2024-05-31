@@ -28,12 +28,33 @@ public class AppointmentCoupleRepository : IAppointmentCoupleRepository
         _serviceActionRepository = serviceActionRepository;
     }
 
+    #region Helpers
+    private async Task<AppointmentServiceAction> ResolveAppointmentServiceAction(AppointmentServiceActionDTO entity)
+    {
+        using (var _database = _databaseFactory.CreateDbContext())
+        {
+            var serviceAction = (await _serviceActionRepository.GetServiceActionsByFilter(id: entity.ServiceActionId)).FirstOrDefault();
+            if (serviceAction == null)
+            {
+                return null;
+            }
+
+            return new AppointmentServiceAction()
+            {
+                ID = entity.ID,
+                AppointmentId = entity.AppointmentId,
+                ServiceAction = serviceAction,
+            };
+        }
+    }
+    #endregion
+
     #region Create
     public async Task CreateAppointmentServiceActionCouple(int appointmentId, int serviceActionId)
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
-            await _database.AppointmentServiceActionCouples.AddAsync(new AppointmentServiceAction()
+            await _database.AppointmentServiceActionCouples.AddAsync(new AppointmentServiceActionDTO()
             {
                 AppointmentId = appointmentId,
                 ServiceActionId = serviceActionId,
@@ -50,7 +71,9 @@ public class AppointmentCoupleRepository : IAppointmentCoupleRepository
         using (var _database = _databaseFactory.CreateDbContext())
         {
             var result = await _database.AppointmentServiceActionCouples.FirstOrDefaultAsync(im => im.AppointmentId == appointmentId && im.ServiceActionId == serviceActionId);
-            return result;
+
+            if (result == null) return null;
+            return await ResolveAppointmentServiceAction(result);
         }
     }
 
@@ -64,7 +87,13 @@ public class AppointmentCoupleRepository : IAppointmentCoupleRepository
 
             if (results == null) return null;
 
-            return results.ToList();
+            foreach (var appointmentServiceAction in results)
+            {
+                var a = await ResolveAppointmentServiceAction(appointmentServiceAction);
+                if (a != null)
+                    appointmentServiceActions.Add(a);
+            }
+            return appointmentServiceActions;
         }
     }
     #endregion
@@ -75,10 +104,10 @@ public class AppointmentCoupleRepository : IAppointmentCoupleRepository
     {
         using (var _database = _databaseFactory.CreateDbContext())
         {
-            var couple = await _database.InvoiceServiceActionCouples.FirstOrDefaultAsync(im => im.ID == appointmentServiceActionId);
+            var couple = await _database.AppointmentServiceActionCouples.FirstOrDefaultAsync(im => im.ID == appointmentServiceActionId);
             if (couple != null)
             {
-                _database.InvoiceServiceActionCouples.Remove(couple);
+                _database.AppointmentServiceActionCouples.Remove(couple);
                 await _database.SaveChangesAsync();
             }
         }
