@@ -11,11 +11,10 @@ public enum Status
     Requested, //the appointment has been requested
     Rejected, //the appointment has been rejected
     Aproved, //the appointment has been aproved
-    InProgress, //the appointment is in progress
-    MechanicFixed, //the appointment has been done on the mechanic's side, and its back for the HR to double check and finish
+    //MechanicFixed, //the appointment has been done on the mechanic's side, and its back for the HR to double check and finish
     AwaitingPayment, // the appointment is done but the user still has to pay
     Completed, // the appointment is fully completed
 
 
-    Taken = Requested | Aproved | InProgress | MechanicFixed,
+    Taken = Requested | Aproved | AwaitingPayment,
 }

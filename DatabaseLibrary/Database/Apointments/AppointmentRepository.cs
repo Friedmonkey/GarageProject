@@ -1,5 +1,6 @@
 ﻿using Bogus.DataSets;
 using DatabaseLibrary.Database.AppointmentCouples;
+using DatabaseLibrary.Database.InvoiceCouples;
 using DatabaseLibrary.Database.Invoices;
 using DatabaseLibrary.Models;
 using Microsoft.EntityFrameworkCore;
@@ -17,12 +18,14 @@ namespace DatabaseLibrary.Database.Appointments
         //private readonly DatabaseContext _database;
         private readonly IDbContextFactory<DatabaseContext> _databaseFactory;
         private readonly IInvoiceRepository _invoiceRepository;
+        private readonly IInvoiceCoupleRepository _invoiceCoupleRepository;
         private readonly IAppointmentCoupleRepository _appointmentCoupleRepository;
-        public AppointmentRepository(IDbContextFactory<DatabaseContext> dbFactory, IInvoiceRepository invoiceRepository, IAppointmentCoupleRepository appointmentCoupleRepository)
+        public AppointmentRepository(IDbContextFactory<DatabaseContext> dbFactory, IInvoiceRepository invoiceRepository, IAppointmentCoupleRepository appointmentCoupleRepository, IInvoiceCoupleRepository invoiceCoupleRepository)
         {
             _databaseFactory = dbFactory;
             this._invoiceRepository = invoiceRepository;
             this._appointmentCoupleRepository = appointmentCoupleRepository;
+            this._invoiceCoupleRepository = invoiceCoupleRepository;
         }
 
         #region Helpers
@@ -93,13 +96,17 @@ namespace DatabaseLibrary.Database.Appointments
                 int id = await _invoiceRepository.CreateInvoice(invoice);
                 appointmentDTO.InvoiceID = id;
 
+                foreach (var item in Appointment.DefaultActions)
+                {
+                    await _invoiceCoupleRepository.CreateInvoiceServiceActionCouple(id, item.ID, 1);
+                }
+
                 _database.Appointments.Add(appointmentDTO);
 
                 foreach (var item in Appointment.DefaultActions)
                 {
                     await _appointmentCoupleRepository.CreateAppointmentServiceActionCouple(appointmentDTO.ID, item.ID);
                 }
-
                 _database.SaveChanges();
                 return "success";
                 //}

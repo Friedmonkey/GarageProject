@@ -106,7 +106,7 @@ else
                 <div>
                     @if (Appointment?.Invoice?.ServiceActions != null && Appointment?.Invoice?.Materials != null)
                     {
-                        <MudButton> Send Invoice</MudButton>
+                        <MudButton OnClick="async () => await SendInvoice()"> Send Invoice</MudButton>
                     } 
                 </div>
         </Authorized>
@@ -269,13 +269,13 @@ else
         if (!result.Canceled)
         {
             await invoiceCoupleRepository.DeleteInvoiceMaterialCouple(invoiceAssigned.ID);
-            LoadData();
+            await LoadData();
         }
-
-
     }
-    private void SendInvoice()
+    private async Task SendInvoice()
     {
+        await appointmentRepository.UpdateAppointment(Appointment.ID, status:Status.AwaitingPayment);
+        snackBar.Add("Finished appointment", Severity.Success);
         // if (invoiceMaterialsToAdd.Count() < 0 && invoiceMaterialsToAdd != null && invoiceServiceActionsToAdd.Count() < 0 && invoiceServiceActionsToAdd != null)
         // {
         //     invoice.ServiceActions = invoiceServiceActionsToAdd;
